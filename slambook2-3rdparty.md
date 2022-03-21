@@ -17,7 +17,6 @@
         ```
   2. [官方github](https://github.com/stevenlovegrove/Pangolin/tree/1ec721d59ff6b799b9c24b8817f3b7ad2c929b83)。看看就行参考意义不大。
 - 头文件位置：/usr/local/include/pangolin
----
 
 ## Sophus (ch4)
 - 安装
@@ -32,7 +31,6 @@
 - 头文件位置：/usr/local/include/sophus
 - Trouble shooting
 	- fatal error:fmt/core.h: No such file or directory：在CMakeLists.txt里添加`target_link_libraries([你定义的可执行文件名，如jointMap] Sophus::Sophus)`
----
 
 ## OpenCV (ch5)
 ### 安装 & 卸载
@@ -82,7 +80,6 @@
 ## Boost (ch5)
 在最后讲RGB-D的程序jointMap.cpp里面用到了boost库，但书上没有提前说要安装。
 - 安装：`sudo apt install libboost-all-dev`
----
 
 ## Ceres (ch6)
 - 安装：[官方教程](http://www.ceres-solver.org/installation.html#linux)。安装的时候选择github上面的[1.14.0版本](https://github.com/ceres-solver/ceres-solver/releases/tag/1.14.0)，不要按官方的装最新的2.x版本。

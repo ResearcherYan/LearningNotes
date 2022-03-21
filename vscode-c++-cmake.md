@@ -1,7 +1,6 @@
 ## Prerequisites
 1. 安装CMake。（编译器gcc和调试器gdb一般linux会自带）
 2. 在VSCode里面安装C/C++（主要作用为intelliSense, debug）, CMake（主要用于CMakeLists.txt高亮）和CMake Tools（将CMake的各种操作移植到VSCode里）扩展。
----
 
 ## C++
 - 说明：这部分主要用于理解一下VSCode编译运行C++程序的逻辑，实际编译调试C++工程的时候还是用CMake多一些。单个cpp也可以用这个方法。
@@ -27,7 +26,6 @@
 1. 创建c_cpp_properties.json：打开Command Palatte (Ctrl+Shift+P)，输入C/C++: Edit Configurations (UI)，会打开IntelliSense Configuration的UI界面（同时创建c_cpp_properties.json，UI和json文件是同步的）。
 2. 修改编译器路径，用g++的最新版本，IntelliSense模式改为linux-gcc-x64。
 3. 如果程序里用到了非工作目录下或者非标准库的头文件，还需要在UI界面中的包含路径下填上该头文件的路径，或者在c_cpp_properties.json的includePath里添加路径。
----
 
 ## CMake
 - 参考链接
@@ -56,7 +54,6 @@
 如果希望vscode在configure自己的cmake project的时候设置一些configuration options的话，可以在.vscode下创建settings.json。
 - cmake.configureSettings：给CMake传入一些键值对，相当于cmake命令行的`-DVAR_NAME=ON`这种的。示例程序：/home/yan/Learning/slam/realsense/test。
 - cmake.buildDirectory：设置在哪里build，vscode默认是`${workspaceFolder}/build`。
----
 
 ## Trouble Shooting
 
