@@ -12,5 +12,5 @@
 ## 其他
 - conda vs. pip: 安装python包尽量只用conda而不要conda和pip混用。因为conda在安装包之前会检查依赖，pip不会。二者混用可能会造成依赖不一致的问题。
 - package channel: 只用conda-forge！去掉default通道，也不要用国内镜像源。混用可能导致因为版本不一致等原因引发依赖问题。使用conda-forge的原因：<br/>
-  <img src=img/conda-pip_1.png width=60%><br/>
+  <img src=img/conda-pip_1.png><br/>
 - env: 做不同的任务用不同的环境，不要把所有的包都装在base里面，否则base包太多容易产生依赖冲突。
