@@ -27,7 +27,7 @@
 		1. https://developer.nvidia.com/cuda-downloads?target_os=Linux&target_arch=x86_64&Distribution=Ubuntu&target_version=20.04&target_type=deb_local
 		2. https://docs.nvidia.com/cuda/cuda-quick-start-guide/index.html#ubuntu-x86_64
 	- 方法2：先安装显卡驱动，再单独安装 cudatoolkit（有点多此一举）
-	- 方法3：通过 ubuntu 软件源安装显卡驱动（据说包含了 cuda ）：`sudo ubuntu-drivers autoinstall`或在“软件和更新”里面选择驱动（不建议）。这种做法可能会出现“挂起再唤醒会死机的现象”（反正至少升级到 20.04.3 LTS 之后就出现这种情况了）。
+	- 方法3：通过 ubuntu 软件源安装显卡驱动（据说包含了 cuda ）：`sudo ubuntu-drivers autoinstall` 或在“软件和更新”里面选择驱动（不建议）。这种做法可能会出现“挂起再唤醒会死机的现象”（反正至少升级到 20.04.3 LTS 之后就出现这种情况了）。
 - 卸载
 	- deb installation：`sudo apt-get --purge remove cuda`（现在装的 cudatoolkit 11.6.1 就是通过 deb 包安装的）
 	- runfile installation

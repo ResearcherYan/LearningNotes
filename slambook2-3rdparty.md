@@ -30,7 +30,7 @@
     ```
 - 头文件位置：/usr/local/include/sophus
 - Trouble shooting
-	- fatal error:fmt/core.h: No such file or directory：在 CMakeLists.txt 里添加`target_link_libraries([你定义的可执行文件名，如jointMap] Sophus::Sophus)`
+	- fatal error:fmt/core.h: No such file or directory：在 CMakeLists.txt 里添加 `target_link_libraries([你定义的可执行文件名，如jointMap] Sophus::Sophus)`
 
 ## OpenCV (ch5)
 ### 安装 & 卸载

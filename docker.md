@@ -2,7 +2,7 @@
 > 参考网站：[Docker - 从入门到实践](https://yeasy.gitbook.io/docker_practice/)
 
 ## Docker简介
-Docker 属于操作系统层面的虚拟化技术。
+> Docker 属于操作系统层面的虚拟化技术，用Go语言开发。
 - 虚拟机与 Docker 的区别
   - 虚拟机：虚拟出一套硬件后，在其上运行一个完整操作系统。
   - Docker：应用进程直接运行于宿主的内核，容器内没有自己的内核，而且也没有进行硬件虚拟。
@@ -40,3 +40,123 @@ Digest: sha256:4bc3ae6596938cb0d9e5ac51a1152ec9dcac2a1c50829c74abd9c4361e321b26
 Status: Downloaded newer image for ubuntu:18.04
 docker.io/library/ubuntu:18.04
 ```
+上面的 pull 过程展示了镜像的分层储存，分了 3 层下载 ubuntu:18.04 镜像。
+### 运行镜像
+- 举例：`docker run -it --rm ubuntu:18.04 bash`
+  - `-it`：这是两个参数，一个是 `-i` 交互式操作，一个是 `-t` 终端。合一起就是提供一个交互式终端环境。
+  - `--rm`：容器退出后随之将其删除。
+  - `ubuntu:18.04`：用 `ubuntu:18.04` 镜像为基础来启动容器。
+  - `bash`：放在镜像名后的是**命令**，这里希望有个交互式 Shell，因此用的是 bash。
+### 列出镜像
+- `docker image ls`：查看所有已下载顶层镜像
+  - 注意：镜像 ID（IMAGE ID）和摘要（DIGEST）是镜像的唯一标识，一个镜像可以对应多个标签（TAG）。
+- `docker system df`：查看镜像所占空间
+- `docker image ls [选项]`：列出部分镜像
+  - `docker image ls [repository]`：指定仓库名
+  - `docker image ls [repository:tag]`：指定仓库名和标签
+  - `docker image ls -f since=[repository:tag]`：列出在某个镜像之后建立的镜像
+  - `docker image ls -f label=[your-label]`：列出某个具有某个 label 的镜像
+### 删除镜像
+- `docker image rm [选项] <镜像1> [<镜像2> ...]`
+  - 用镜像 ID 删除：不用是全 ID ，用前面一部分短 ID 就行了
+  - 用镜像名删除：`<仓库名>:<标签>`
+- `docker image rm $(docker image ls -q redis)`：批量删除名为redis的镜像
+- `docker image prune`：删除虚悬镜像。虚悬镜像的仓库和ID均为 `<none>`，一般是因为镜像维护发布了新版本，旧版本的名称就被取消了，这种镜像没有价值，可以随意删除。
+
+## 操作容器
+### 启动容器
+- 新建并启动
+  - `docker run ubuntu:18.04 /bin/echo 'Hello world'`：输出一个 “Hello World”，之后终止容器
+  - `docker run -it ubuntu:18.04 /bin/bash`：启动一个 bash 终端，并保持打开
+  - `docker run` 背后的后台操作
+    - 检查本地是否存在指定的镜像，不存在就从 registry 下载
+    - 利用镜像创建并启动一个容器
+    - 分配一个文件系统，并在只读的镜像层外面挂载一层可读写层
+    - 从宿主主机配置的网桥接口中桥接一个虚拟接口到容器中去
+    - 从地址池配置一个 ip 地址给容器
+    - 执行用户指定的应用程序
+    - 执行完毕后容器被终止
+- 启动已终止容器
+  - `docker container start`：将一个已经终止（exited）的容器启动运行
+- 查看容器信息
+  - `docker container ls`：查看正处于激活状态的容器。如果加上 `-a`表示查看所有容器（包括终止的容器）。
+  - `ps` 或 `top`：查看某容器内部的进程信息（**在该容器的终端运行**）
+### 守护态运行
+`-d` 参数可以让docker在后台运行
+- 不用 `-d`：容器会把输出的结果打印到宿主机上
+```shell
+$ docker run ubuntu:18.04 /bin/sh -c "while true; do echo hello world; sleep 1; done"
+hello world
+hello world
+hello world
+hello world
+```
+- 使用 `-d`：容器会在后台运行，输出结果可用 `docker logs` 查看
+```shell
+$ docker run -d ubuntu:18.04 /bin/sh -c "while true; do echo hello world; sleep 1; done"
+77b2dc01fe0f3f1265df143181e7b9af5e05279a884f4776ee75350ea9d8017a
+$ docker container ls
+CONTAINER ID  IMAGE         COMMAND               CREATED        STATUS       PORTS NAMES
+77b2dc01fe0f  ubuntu:18.04  /bin/sh -c 'while tr  2 minutes ago  Up 1 minute        agitated_wright
+$ docker container logs [container ID or NAMES]
+hello world
+hello world
+hello world
+. . .
+```
+### 终止容器
+- 手动终止：`docker container stop`
+- 自动终止：当 Docker 容器中指定的应用终结时，容器将自动终止
+- 重启：`docker container restart`
+### 进入容器
+`-d` 使容器进入后台运行，而 `attach` 或 `exec` 命令可以进入正在后台运行的容器。
+- `attach` 命令（不建议用）：执行 `exit` 会导致容器停止
+```shell
+$ docker run -dit ubuntu
+243c32535da7d142fb0e6df616a3c3ada0b8ab417937c853a9e1c251f499f550
+
+$ docker container ls
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
+243c32535da7        ubuntu:latest       "/bin/bash"         18 seconds ago      Up 17 seconds                           nostalgic_hypatia
+
+$ docker attach 243c
+root@243c32535da7:/#
+```
+- `exec` 命令（推荐使用）：执行 `exit` 不会导致容器停止。后边可以跟多个参数，如 `-i`, `-t` 等
+```shell
+$ docker run -dit ubuntu
+69d137adef7a8a689cbcb059e94da5489d3cddd240ff675c640c8d96e84fe1f6
+
+$ docker container ls
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
+69d137adef7a        ubuntu:latest       "/bin/bash"         18 seconds ago      Up 17 seconds                           zealous_swirles
+
+$ docker exec -it 69d1 bash
+root@69d137adef7a:/#
+```
+### 导出和导入
+- `docker export`：导出容器快照
+```shell
+$ docker container ls -a
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS                    PORTS               NAMES
+7691a814370e        ubuntu:18.04        "/bin/bash"         36 hours ago        Exited (0) 21 hours ago                       test
+$ docker export 7691a814370e > ubuntu.tar
+```
+- `docker import`：导入容器快照
+  - 通过镜像名导入
+  ```shell
+  $ cat ubuntu.tar | docker import - test/ubuntu:v1.0
+  $ docker image ls
+  REPOSITORY          TAG                 IMAGE ID            CREATED              VIRTUAL SIZE
+  test/ubuntu         v1.0                9d37a6082e97        About a minute ago   171.3 MB
+  ```
+  - 通过 URL 或目录导入
+  ```shell
+  $ docker import http://example.com/exampleimage.tgz example/imagerepo
+  ```
+- `docker load`：导入镜像储存文件。镜像储存文件与容器快照的区别：
+  - 容器快照文件将丢弃所有的历史记录和元数据信息（即仅保存容器当时的快照状态），并且从容器快照文件导入时可以重新指定标签等元数据信息。
+  - 镜像存储文件将保存完整记录，体积也更大一些。
+### 删除容器
+- `docker container rm [container-name]`：删除一个处于终止状态的容器。如果加上 `-f` 参数，会进行强制删除，可用于删除运行中的容器。
+- `docker container prune`：清理所有处于终止状态的容器
