@@ -1,5 +1,27 @@
-# Docker Learning Notes
-> 参考网站：[Docker - 从入门到实践](https://yeasy.gitbook.io/docker_practice/)
+> CONTENT
+- [Docker Basics](#docker-basics)
+  - [Docker简介](#docker简介)
+  - [Docker的三个基本概念](#docker的三个基本概念)
+    - [镜像 Image](#镜像-image)
+    - [容器 Container](#容器-container)
+    - [仓库 Repository](#仓库-repository)
+  - [使用镜像](#使用镜像)
+    - [获取镜像](#获取镜像)
+    - [运行镜像](#运行镜像)
+    - [列出镜像](#列出镜像)
+    - [删除镜像](#删除镜像)
+  - [操作容器](#操作容器)
+    - [启动容器](#启动容器)
+    - [守护态运行](#守护态运行)
+    - [终止容器](#终止容器)
+    - [进入容器](#进入容器)
+    - [导出和导入](#导出和导入)
+    - [删除容器](#删除容器)
+- [Docker in VSCode](#docker-in-vscode)
+  - [Tutorial #1: Create and share a Docker app with Visual Studio Code](#tutorial-1-create-and-share-a-docker-app-with-visual-studio-code)
+  - [Tutorial #2: Persist data in a container app using volumes in VS Code](#tutorial-2-persist-data-in-a-container-app-using-volumes-in-vs-code)
+# Docker Basics
+> 参考链接：[Docker - 从入门到实践](https://yeasy.gitbook.io/docker_practice/)
 
 ## Docker简介
 > Docker 属于操作系统层面的虚拟化技术，用Go语言开发。
@@ -160,3 +182,31 @@ $ docker export 7691a814370e > ubuntu.tar
 ### 删除容器
 - `docker container rm [container-name]`：删除一个处于终止状态的容器。如果加上 `-f` 参数，会进行强制删除，可用于删除运行中的容器。
 - `docker container prune`：清理所有处于终止状态的容器
+
+---
+
+# Docker in VSCode
+> 参考链接<br>
+> 1. [Docker tutorial for VS Code users](https://docs.microsoft.com/en-us/visualstudio/docker/tutorials/docker-tutorial)
+> 2. [Docker in Visual Studio Code](https://code.visualstudio.com/docs/containers/overview)
+> 3. [Developing inside a Container](https://code.visualstudio.com/docs/remote/containers)
+
+## Tutorial #1: Create and share a Docker app with Visual Studio Code
+> Link - [Tutorial: Create and share a Docker app with Visual Studio Code](https://docs.microsoft.com/en-us/visualstudio/docker/tutorials/docker-tutorial)
+
+- General Procedures
+  - Make your program prepared.
+  - Write a *Dockerfile*. Which may include:
+    - Base Image
+    - Working directory
+    - Folders to be copied
+    - Dependencies to be installed
+    - Command lines to be executed when container excited
+  - Build a container image according to the *Dockerfile*.
+  - Start your container and test the program.
+  - Share your image on a registry.
+  - Run the image on a new instance.
+
+## Tutorial #2: Persist data in a container app using volumes in VS Code
+> Link - [Tutorial: Persist data in a container app using volumes in VS Code](https://docs.microsoft.com/en-us/visualstudio/docker/tutorials/tutorial-persist-data-layer-docker-app-with-vscode)
+

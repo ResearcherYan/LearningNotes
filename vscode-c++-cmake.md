@@ -1,3 +1,16 @@
+> CONTENT
+- [Prerequisites](#prerequisites)
+- [C++](#c)
+	- [三个核心 json 文件](#三个核心-json-文件)
+	- [Build & Run](#build--run)
+	- [Debug](#debug)
+	- [配置 IntelliSense](#配置-intellisense)
+- [CMake](#cmake)
+	- [Build & Run](#build--run-1)
+	- [Debug](#debug-1)
+	- [配置 IntelliSense](#配置-intellisense-1)
+	- [设置 CMake settings](#设置-cmake-settings)
+- [Trouble Shooting](#trouble-shooting)
 ## Prerequisites
 1. 安装 CMake。（编译器 gcc 和调试器 gdb 一般 linux会自带）
 2. 在 VSCode 里面安装 C/C++（主要作用为 intelliSense, debug）, CMake（主要用于 CMakeLists.txt 高亮）和 CMake Tools（将 CMake 的各种操作移植到 VSCode 里）扩展。
