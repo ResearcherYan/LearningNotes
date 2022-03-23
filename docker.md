@@ -20,6 +20,13 @@
 - [Docker in VSCode](#docker-in-vscode)
   - [Tutorial #1: Create and share a Docker app with Visual Studio Code](#tutorial-1-create-and-share-a-docker-app-with-visual-studio-code)
   - [Tutorial #2: Persist data in a container app using volumes in VS Code](#tutorial-2-persist-data-in-a-container-app-using-volumes-in-vs-code)
+    - [Pesist data using named volumes (*Recommend*)](#pesist-data-using-named-volumes-recommend)
+    - [Pesist data using bind mount<br>](#pesist-data-using-bind-mount)
+    - [The difference between Named Volumes and Bind Mount](#the-difference-between-named-volumes-and-bind-mount)
+    - [Others](#others)
+      - [View image layers](#view-image-layers)
+      - [Cache dependencies](#cache-dependencies)
+      - [Multi-stage builds](#multi-stage-builds)
 # Docker Basics
 > 参考链接：[Docker - 从入门到实践](https://yeasy.gitbook.io/docker_practice/)
 
@@ -210,18 +217,18 @@ $ docker export 7691a814370e > ubuntu.tar
 ## Tutorial #2: Persist data in a container app using volumes in VS Code
 > Link - [Tutorial: Persist data in a container app using volumes in VS Code](https://docs.microsoft.com/en-us/visualstudio/docker/tutorials/tutorial-persist-data-layer-docker-app-with-vscode)
 
-- Pesist data using named volumes (*Recommend*)
-  - Create a volume: `docker volume create todo-db`<br>
-  docker 会在硬盘上创建一个 volume ，这个 volume 的位置可以通过 `docker volume inspect todo-db` 来查看，发现 todo.db 文件就储存在 MountPoint 指向的位置。
-  - Run a container and mount the volume to a container's folder: `docker run -dp 3000:3000 -v todo-db:/etc/todos getting-started`<br>
-  docker 先开启一个容器，然后把刚刚创建的 volume（在主机的硬盘上）挂载到**该容器文件系统下**的 /etc/todos 位置。先执行 `docker exec -it [container-ID]` 进入容器的shell环境，然后 `ls /etc/todos` 就可以看到 todo.db 文件。
+### Pesist data using named volumes (*Recommend*)
+- Create a volume: `docker volume create todo-db`<br>
+docker 会在硬盘上创建一个 volume ，这个 volume 的位置可以通过 `docker volume inspect todo-db` 来查看，发现 todo.db 文件就储存在 MountPoint 指向的位置。
+- Run a container and mount the volume to a container's folder: `docker run -dp 3000:3000 -v todo-db:/etc/todos getting-started`<br>
+docker 先开启一个容器，然后把刚刚创建的 volume（在主机的硬盘上）挂载到**该容器文件系统下**的 /etc/todos 位置。先执行 `docker exec -it [container-ID]` 进入容器的shell环境，然后 `ls /etc/todos` 就可以看到 todo.db 文件。
 
-- Pesist data using bind mount<br>
-  - Run a container and mount a host folder to a container's folder: `docker run -dp 3000:3000 -w /app -v ${PWD}:/app node:12-alpine sh -c "yarn install && yarn run dev"`
-    - `-w /app` Working directory inside the container.
-    - `-v ${PWD}:/app` Bind mount the current directory from the host in the container into the `/app` directory.
-    - `sh -c "yarn install && yarn run dev"` A shell command executed in the container.
-  - (Optional) Watch the logs: `docker logs -f <container-id>`. When the following messages show, it indicates that the app is running.
+### Pesist data using bind mount<br>
+- Run a container and mount a host folder to a container's folder: `docker run -dp 3000:3000 -w /app -v ${PWD}:/app node:12-alpine sh -c "yarn install && yarn run dev"`
+  - `-w /app` Working directory inside the container.
+  - `-v ${PWD}:/app` Bind mount the current directory from the host in the container into the `/app` directory.
+  - `sh -c "yarn install && yarn run dev"` A shell command executed in the container.
+- (Optional) Watch the logs: `docker logs -f <container-id>`. When the following messages show, it indicates that the app is running.
   ```shell
   $ nodemon src/index.js
   [nodemon] 1.19.2
@@ -234,5 +241,97 @@ $ docker export 7691a814370e > ubuntu.tar
   这里会发现 `yarn install` 这一步会花很多时间，如果以后要用的docker环境需要安装很多依赖（这很可能），每次都要重新 run 一个新的container，效率就会很低。对于常用的开发环境，可以选择使用完 container 之后不要 remove，只用 stop 掉就好了。下次启动的时候使用 `docker container start [OPTIONS] CONTAINER]` 重新启动该容器即可。<br>
   但其实 `docker container start` 命令的 options 其实是很少的，所以很多东西在第一次创建container的时候就已经定下来了，后面没法改，比如这个例子里面的端口映射。
 
-- The difference between Named Volumes and Bind Mount
+### The difference between Named Volumes and Bind Mount
 <img src=img/docker_1.png>
+
+### Others
+#### View image layers
+Use `docker image history getting-started` to see the layers in the getting-started image that you created. With `--no-trunc`, you'll get the full output.
+
+#### Cache dependencies
+*Dockerfile* 里的每一条指令都会在镜像中创建一个新的层，因此在写 *Dockerfile* 的时候需要注意指令的先后顺序。比如如下的 *Dockerfile* 就是先 copy 好所有文件，再进行 yarn install 。
+```Dockerfile
+FROM node:12-alpine
+WORKDIR /app
+COPY package.json yarn.lock ./
+RUN yarn install --production
+COPY . .
+CMD ["node", "/app/src/index.js"]
+```
+如果改成下面这样，就是先只 copy 与安装依赖相关的文件，然后执行 yarn install，执行完之后再把所有的文件 copy 过来。
+```Dockerfile
+FROM node:12-alpine
+WORKDIR /app
+COPY package.json yarn.lock ./
+RUN yarn install --production
+COPY . .
+CMD ["node", "/app/src/index.js"]
+```
+用上面的 *Dockerfile* build 的结果如下
+```shell
+Sending build context to Docker daemon  219.1kB
+Step 1/6 : FROM node:12-alpine
+---> b0dc3a5e5e9e
+Step 2/6 : WORKDIR /app
+---> Using cache
+---> 9577ae713121
+Step 3/6 : COPY package* yarn.lock ./
+---> bd5306f49fc8
+Step 4/6 : RUN yarn install --production
+---> Running in d53a06c9e4c2
+yarn install v1.17.3
+[1/4] Resolving packages...
+[2/4] Fetching packages...
+info fsevents@1.2.9: The platform "linux" is incompatible with this module.
+info "fsevents@1.2.9" is an optional dependency and failed compatibility check. Excluding it from installation.
+[3/4] Linking dependencies...
+[4/4] Building fresh packages...
+Done in 10.89s.
+Removing intermediate container d53a06c9e4c2
+---> 4e68fbc2d704
+Step 5/6 : COPY . .
+---> a239a11f68d8
+Step 6/6 : CMD ["node", "/app/src/index.js"]
+---> Running in 49999f68df8f
+Removing intermediate container 49999f68df8f
+---> e709c03bc597
+Successfully built e709c03bc597
+Successfully tagged getting-started:latest
+```
+此时如果把 app 的源代码改一点点，再重新 build 的时候，很容易发现 docker 在 build 的过程中的前 4 步都是直接使用了之前的 cache dependencies，不用再重新 build。所以设置好 *Dockerfile* 里面的指令顺序有时候会很省事。
+```shell
+Sending build context to Docker daemon  219.1kB
+Step 1/6 : FROM node:12-alpine
+---> b0dc3a5e5e9e
+Step 2/6 : WORKDIR /app
+---> Using cache
+---> 9577ae713121
+Step 3/6 : COPY package* yarn.lock ./
+---> Using cache
+---> bd5306f49fc8
+Step 4/6 : RUN yarn install --production
+---> Using cache
+---> 4e68fbc2d704
+Step 5/6 : COPY . .
+---> cccde25a3d9a
+Step 6/6 : CMD ["node", "/app/src/index.js"]
+---> Running in 2be75662c150
+Removing intermediate container 2be75662c150
+---> 458e5c6f080c
+Successfully built 458e5c6f080c
+Successfully tagged getting-started:latest
+```
+
+#### Multi-stage builds
+比如说我们要开发并部署一个基于 java 的应用程序，开发环境需要用到 JDK 来编译，但部署的时候不需要 JDK 了。下面的例子就是在 build 的时候用到了 Maven，但在最终的 image 实际上用的是 Tomcat。
+- First stage: Perform the actual Java build using Maven.
+- Second stage: Make Tomat the final image, and copies in files from the build stage.
+```Dockerfile
+FROM maven AS build
+WORKDIR /app
+COPY . .
+RUN mvn package
+
+FROM tomcat
+COPY --from=build /app/target/file.war /usr/local/tomcat/webapps
+```
