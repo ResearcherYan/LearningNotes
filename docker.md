@@ -186,7 +186,7 @@ $ docker export 7691a814370e > ubuntu.tar
 ---
 
 # Docker in VSCode
-> 参考链接<br>
+> 参考链接（备查）<br>
 > 1. [Docker tutorial for VS Code users](https://docs.microsoft.com/en-us/visualstudio/docker/tutorials/docker-tutorial)
 > 2. [Docker in Visual Studio Code](https://code.visualstudio.com/docs/containers/overview)
 > 3. [Developing inside a Container](https://code.visualstudio.com/docs/remote/containers)
@@ -210,3 +210,29 @@ $ docker export 7691a814370e > ubuntu.tar
 ## Tutorial #2: Persist data in a container app using volumes in VS Code
 > Link - [Tutorial: Persist data in a container app using volumes in VS Code](https://docs.microsoft.com/en-us/visualstudio/docker/tutorials/tutorial-persist-data-layer-docker-app-with-vscode)
 
+- Pesist data using named volumes (*Recommend*)
+  - Create a volume: `docker volume create todo-db`<br>
+  docker 会在硬盘上创建一个 volume ，这个 volume 的位置可以通过 `docker volume inspect todo-db` 来查看，发现 todo.db 文件就储存在 MountPoint 指向的位置。
+  - Run a container and mount the volume to a container's folder: `docker run -dp 3000:3000 -v todo-db:/etc/todos getting-started`<br>
+  docker 先开启一个容器，然后把刚刚创建的 volume（在主机的硬盘上）挂载到**该容器文件系统下**的 /etc/todos 位置。先执行 `docker exec -it [container-ID]` 进入容器的shell环境，然后 `ls /etc/todos` 就可以看到 todo.db 文件。
+
+- Pesist data using bind mount<br>
+  - Run a container and mount a host folder to a container's folder: `docker run -dp 3000:3000 -w /app -v ${PWD}:/app node:12-alpine sh -c "yarn install && yarn run dev"`
+    - `-w /app` Working directory inside the container.
+    - `-v ${PWD}:/app` Bind mount the current directory from the host in the container into the `/app` directory.
+    - `sh -c "yarn install && yarn run dev"` A shell command executed in the container.
+  - (Optional) Watch the logs: `docker logs -f <container-id>`. When the following messages show, it indicates that the app is running.
+  ```shell
+  $ nodemon src/index.js
+  [nodemon] 1.19.2
+  [nodemon] to restart at any time, enter `rs`
+  [nodemon] watching dir(s): *.*
+  [nodemon] starting `node src/index.js`
+  Using sqlite database at /etc/todos/todo.db
+  Listening on port 3000
+  ```
+  这里会发现 `yarn install` 这一步会花很多时间，如果以后要用的docker环境需要安装很多依赖（这很可能），每次都要重新 run 一个新的container，效率就会很低。对于常用的开发环境，可以选择使用完 container 之后不要 remove，只用 stop 掉就好了。下次启动的时候使用 `docker container start [OPTIONS] CONTAINER]` 重新启动该容器即可。<br>
+  但其实 `docker container start` 命令的 options 其实是很少的，所以很多东西在第一次创建container的时候就已经定下来了，后面没法改，比如这个例子里面的端口映射。
+
+- The difference between Named Volumes and Bind Mount
+<img src=img/docker_1.png>
