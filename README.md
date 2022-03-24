@@ -6,3 +6,5 @@
 3. [VSCode配置C++/CMake (Linux)](vscode-c++-cmake.md)
 4. [视觉SLAM十四讲 3rdparty library installation](slambook2-3rdparty.md)
 5. [docker](docker.md)
+6. [ubuntu](ubuntu.md)
+7. [orbslam2](orbslam2.md)
