@@ -1,0 +1,50 @@
+// For format details, see https://aka.ms/vscode-remote/devcontainer.json or the definition README at
+// https://github.com/microsoft/vscode-dev-containers/tree/master/containers/ubuntu-18.04-git
+{
+  "name": "Ubuntu 18.04 & Git",
+  "dockerFile": "Dockerfile",
+  // The optional 'runArgs' property can be used to specify additional runtime arguments.
+  "runArgs": [
+    // Uncomment the line if you will use a ptrace-based debugger like C++, Go, and Rust.
+    // "--cap-add=SYS_PTRACE", "--security-opt", "seccomp=unconfined",
+    // Uncomment the next line to use a non-root user. On Linux, this will prevent
+    // new files getting created as root, but you may need to update the USER_UID
+    // and USER_GID in .devcontainer/Dockerfile to match your user if not 1000.
+    "-u",
+    "vscode",
+    "-v",
+    "/tmp/.X11-unix:/tmp/.X11-unix",
+    // "-v",
+    // "/dev/shm:/dev/shm",
+    // "-e",
+    // "XAUTHORITY=$XAUTHORITY",
+    "-e",
+    "DISPLAY=:1",
+    "--device",
+    "/dev/dri",
+    // "--privileged",
+  ],
+  // Use 'settings' to set *default* container specific settings.json values on container create. 
+  // You can edit these settings after create using File > Preferences > Settings > Remote.
+  "settings": {
+    "terminal.integrated.shell.linux": "/bin/bash",
+    "http.proxyStrictSSL": false,
+    "http.proxy": "http://127.0.0.1:12333",
+    "https.proxy": "https://127.0.0.1:12333",
+  },
+  // Uncomment the next line if you want to publish any ports.
+  // "appPort": [],
+  // Uncomment the next line to run commands after the container is created.
+  // "postCreateCommand": "uname -a",
+  // Add the IDs of extensions you want installed when the container is created in the array below.
+  "extensions": [
+    "twxs.cmake",
+    "ms-vscode.cpptools",
+    "mhutchie.git-graph",
+    "eamodio.gitlens"
+  ],
+  // "containerEnv": {
+  // 	"http_proxy": "http://172.17.0.1:12333/",
+  // 	"https_proxy": "https://172.17.0.1:12333/"
+  // }
+}
