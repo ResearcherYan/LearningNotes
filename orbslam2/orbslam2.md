@@ -25,13 +25,13 @@
 - Warnings
   - 如果在 *devcontainer.json* 文件中没有指明 device 的文件位置的话，就会报下面的这些 warning（虽然写的是 error，但不影响程序运行）<br>
   ```shell
-  error: XDG_RUNTIME_DIR not set in the environment.<br>
-  libGL error: MESA-LOADER: failed to retrieve device information<br>
-  libGL error: Version 4 or later of flush extension not found<br>
-  libGL error: failed to load driver: i915<br>
-  libGL error: failed to open /dev/dri/card0: No such file or directory<br>
-  libGL error: failed to load driver: iris<br>
-  Framebuffer with requested attributes not available. Using available framebuffer. You may see visual artifacts.<br>
+  error: XDG_RUNTIME_DIR not set in the environment.
+  libGL error: MESA-LOADER: failed to retrieve device information
+  libGL error: Version 4 or later of flush extension not found
+  libGL error: failed to load driver: i915
+  libGL error: failed to open /dev/dri/card0: No such file or directory
+  libGL error: failed to load driver: iris
+  Framebuffer with requested attributes not available. Using available framebuffer. You may see visual artifacts.
   ```
   参考 [gitee](https://gitee.com/feisonzl/orbslam2_runin_docker/commit/93a6d266c4ddc2c067a3a6cd786f13e88cb10470) 上对原 devcontainer.json 的修改，可以通过指定 device 来解决大部分的 warning（除了第一句）。具体见 [devcontainer.json](devcontainer.json)。
 
