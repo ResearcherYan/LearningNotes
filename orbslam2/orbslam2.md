@@ -21,7 +21,7 @@
   - 首先查的log文件的最底部的报错信息，就是 *XHR failed*。看到 [stackoverflow](https://stackoverflow.com/questions/70177216/visual-studio-code-error-while-fetching-extensions-xhr-failed) 上面有个回答说是因为 vscode 和 PC 设置的 proxy 冲突了。
   - 随后就把log文件往上看了看，发现确实是因为网络问题，还有个报错信息就是 *Client network socket disconnected before secure TLS connection was established*，于是就知道应该是小飞机的问题，应该是容器没有接上主机的代理。通过一个 [github issue](https://github.com/microsoft/vscode-remote-release/issues/986) 找到了给容器设置代理的方法，即在 *devcontainer.json* 的 settings 里设置 http.proxy（也可以加上 https.proxy）。
 - Problem #3: Pangolin X11: Failed to open X display
-  - 参考 [stackoverflow](https://stackoverflow.com/questions/14394974/why-is-display-sometimes-0-and-sometimes-1) 上的回答，这个问题应该主要是因为 Pangolin 创建的窗口找不到 display name 去显示，这里 `DISPLAY=:0` 表示用的是 local display，而 `DISPLAY=:1` 则表示用的是 enable remote display。由于这里我们用的是 remote container，所以应该选 `DISPLAY=:1`。
+  - 参考 [askubuntu](https://askubuntu.com/questions/432255/what-is-the-display-environment-variable) ，在既有集显又有独显的电脑上，`DISPLAY=:0` 应该表示显示设备为集显，而 `DISPLAY=:1` 则表示显示设备为独显。在终端查看 `echo $DISPLAY` 发现是 `:1`，说明现在用的是独显，因此在 devcontainer.json 里面也应该把 pangolin 的窗口输出到独显上，即设置 `DISPLAY=:1`。
 - Warnings
   - 如果在 *devcontainer.json* 文件中没有指明 device 的文件位置的话，就会报下面的这些 warning（虽然写的是 error，但不影响程序运行）<br>
   ```shell
