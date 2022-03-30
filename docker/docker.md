@@ -321,6 +321,7 @@ Removing intermediate container 2be75662c150
 Successfully built 458e5c6f080c
 Successfully tagged getting-started:latest
 ```
+PS: 要注意不要随便在 vscode 里面修改 *Dockerfile* 的 default indentation，即使是把默认的缩进从 4 格改到 2 格，也会导致 docker 无法使用 cache。
 
 #### Multi-stage builds
 比如说我们要开发并部署一个基于 java 的应用程序，开发环境需要用到 JDK 来编译，但部署的时候不需要 JDK 了。下面的例子就是在 build 的时候用到了 Maven，但在最终的 image 实际上用的是 Tomcat。

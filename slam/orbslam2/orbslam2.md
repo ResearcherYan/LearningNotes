@@ -11,7 +11,15 @@
 > 3. [ORB-SLAM3 Docker 容器 (github)](https://github.com/jahaniam/orbslam3_docker)
 
 ### How to install
-考虑到开发和部署环境的一致性需求，选择用 docker 的方式安装 orbslam2。在 gitee 上发现有人把 orbslam2 docker 环境打包好了，可以直接使用 vscode 的 remote container 插件实现容器的创建。总的安装过程参考 [ORB-SLAM2 Docker 容器 (gitee)](https://gitee.com/wycan/orbslam2_runin_docker)。
+考虑到开发和部署环境的一致性需求，选择用 docker 的方式安装 orbslam2。在 gitee 上发现有人把 orbslam2 docker 环境打包好了，可以直接使用 vscode 的 remote container 插件实现容器的创建。总的安装过程参考 [ORB-SLAM2 Docker 容器 (gitee)](https://gitee.com/wycan/orbslam2_runin_docker)。但是这个仓库只配置了 orbslam2 的环境，没有配置 ROS，RealSense 相机软件包，以及激光雷达软件包这些软件包，因此还需要自己改 *Dockerfile*。*Dockerfile* 的改动主要包括：
+- Base image：不用 ubuntu:bionic，可以直接用装好 ROS Melodic 的 ubuntu bionic 镜像。
+- Later installation
+  - RealSense SDK & RealSense ROS Package
+  - Lidar dependencies & Lidar ROS Package
+  - ...
+
+
+**注意 [devcontainer.json](devcontainer.json) 和 [Dockerfile](Dockerfile) 文件相比于 gitee 上的有所改动。**
 
 ### Trouble shooting
 - Problem #1: Certificate verification failed: The certificate is NOT trusted.<br>
