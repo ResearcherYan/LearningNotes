@@ -1,5 +1,3 @@
-> 参考链接：[Best practices for writing Dockerfiles](https://docs.docker.com/develop/develop-images/dockerfile_best-practices/)
-
 > CONTENT
 - [General guidelines and recommendations](#general-guidelines-and-recommendations)
   - [Container building process](#container-building-process)
@@ -21,8 +19,17 @@
   - [ADD or COPY](#add-or-copy)
   - [CMD](#cmd)
   - [ENV](#env)
+  - [WORKDIR](#workdir)
   - [* EXPOSE](#-expose)
   - [* LABEL](#-label)
+  - [* ENTRYPOINT](#-entrypoint)
+  - [* VOLUME](#-volume)
+  - [* USER](#-user)
+  - [* ONBUILD](#-onbuild)
+  - [* ARG](#-arg)
+
+> 参考链接：[Best practices for writing Dockerfiles](https://docs.docker.com/develop/develop-images/dockerfile_best-practices/)<br>
+> 备用链接：[Dockerfile reference](https://docs.docker.com/engine/reference/builder/)
 
 ## General guidelines and recommendations
 ### Container building process
@@ -148,6 +155,8 @@ RUN export ADMIN_USER="mark" \
 CMD sh
 ```
 
+### WORKDIR
+`WORKDIR` 指定后续指令的工作空间，不要使用 `RUN cd … && do-something` 这种指令，出于可读性和方便的 trouble shooting，应直接用 `WORKDIR`。
 
 ### * EXPOSE
 `EXPOSE` 指令用于指定容器所监听的端口。
@@ -155,3 +164,22 @@ CMD sh
 ### * LABEL
 为 image 添加 label（可添加多个 label ），需要注意 label 的语法。
 
+### * ENTRYPOINT
+`ENTRYPOINT` 一般用于设置镜像的 main command，使得运行镜像时像是在执行这条 command 一样。如下面的 *Dockerfile*
+```dockerfile
+ENTRYPOINT ["s3cmd"]
+CMD ["--help"]
+```
+现在可以使用 `docker run s3cmd` 显示 `s3cmd` 的 help 信息。也可以在右边加上参数来执行一条指令：`docker run s3cmd ls s3://mybucket`.
+
+### * VOLUME
+`VOLUME` 会创造一个挂载点，用法如 `VOLUME /myvol`，也可以用其他格式。主机上的挂载点不支持在 *Dockerfile* 里声明，需要在 `docker run` 的时候指明。
+
+### * USER
+If a service can run without privileges, use `USER` to change to a non-root user.
+
+### * ONBUILD
+`ONBUILD` 主要是为了容器间的继承。如果 parent image 的 *Dockerfile* 里有 `ONBUILD` 指令，那么通过 `FROM` 指令从该 parent image 衍生出的 child image 在 build 之前就会执行这个 `ONBUILD` 指令。
+
+### * ARG
+这个主要参考备用链接。`ARG` 定义了在 build time 的时候，有哪些变量是可以通过 `--build-arg <varname>=<value>` 传递给 `docker build` 命令的。使用方法为 `ARG <name>[=<default value>]`，其中 default value 可以设置也可以不设置。
