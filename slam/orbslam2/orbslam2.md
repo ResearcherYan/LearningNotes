@@ -28,13 +28,13 @@
 **注意 [devcontainer.json](devcontainer.json) 和 [Dockerfile](Dockerfile) 文件相比于 gitee 上的有所改动。**
 
 ### Trouble shooting
-- Problem #1: Certificate verification failed: The certificate is NOT trusted.<br>
+- Problem #1: Certificate verification failed: The certificate is NOT trusted.
   - 先尝试了网上说的重装 ca-certificates，无果（通过 apt install 或手动下载 deb 包安装都没用）。
-  - 后面参考 [sudo apt update --> Certificate verification failed](https://blog.csdn.net/qlexcel/article/details/120642914) 直接把 *Dockerfile* 里面清华源的 https 换成 http，成功了。（但不建议这样做）
-  - 最后，发现其实是因为没有设置好 https 代理的问题，所以解决方法跟下面的 Problem #2 一样。
-- Problem #2: Client network socket disconnected before secure TLS connection was established 或 XHR failed<br>
+  - 后面参考 [sudo apt update --> Certificate verification failed](https://blog.csdn.net/qlexcel/article/details/120642914) 直接把 *Dockerfile* 里面清华源的 https 换成 http，成功了。
+  - 最后，发现其实是因为 https 协议在传输过程中用了 SSL/TLS 数据加密，导致 http 代理无法正常接收数据，具体原因参考 [http-可用-https-不可用](../../general/proxy.md#http-可用-https-不可用)，因此要通过设置 `"http.proxyStrictSSL": false`，才能正常从 https 网站上下载。
+- Problem #2: Client network socket disconnected before secure TLS connection was established 或 XHR failed
   - 首先查的log文件的最底部的报错信息，就是 *XHR failed*。看到 [stackoverflow](https://stackoverflow.com/questions/70177216/visual-studio-code-error-while-fetching-extensions-xhr-failed) 上面有个回答说是因为 vscode 和 PC 设置的 proxy 冲突了。
-  - 随后就把log文件往上看了看，发现确实是因为网络问题，还有个报错信息就是 *Client network socket disconnected before secure TLS connection was established*，于是就知道应该是小飞机的问题，应该是容器没有接上主机的代理。通过一个 [github issue](https://github.com/microsoft/vscode-remote-release/issues/986) 找到了给容器设置代理的方法，即在 *devcontainer.json* 的 settings 里设置 http.proxy（https.proxy 也加上）。
+  - 随后就把log文件往上看了看，发现确实是因为网络问题，还有个报错信息就是 *Client network socket disconnected before secure TLS connection was established*，于是就知道应该是小飞机的问题，应该是容器没有接上主机的代理。通过一个 [github issue](https://github.com/microsoft/vscode-remote-release/issues/986) 找到了给容器设置代理的方法，即在 *devcontainer.json* 的 settings 里设置 `http.proxy`（`https.proxy` 也可以加上，但加上的话一定还要加一句 `"http.proxyStrictSSL": false`）。
 - Problem #3: Pangolin X11: Failed to open X display
   - 参考 [askubuntu](https://askubuntu.com/questions/432255/what-is-the-display-environment-variable) ，在既有集显又有独显的电脑上，`DISPLAY=:0` 应该表示显示设备为集显，而 `DISPLAY=:1` 则表示显示设备为独显。在终端查看 `echo $DISPLAY` 发现是 `:1`，说明现在用的是独显，因此在 devcontainer.json 里面也应该把 pangolin 的窗口输出到独显上，即设置 `DISPLAY=:1`。
 - Warnings
