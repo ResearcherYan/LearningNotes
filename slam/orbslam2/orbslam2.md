@@ -18,7 +18,7 @@
 - Dependencies：把 orbslam2 的依赖包从 .devcontainer 文件夹中移出，移到源代码文件夹外面。<br>
   好处：这样可以减少容器的大小。在构建容器的过程中就已经把依赖复制到了容器内（因为需要在容器内 build），而 remote container 构建完容器后，还会把主机 vscode 打开的文件夹（即源代码文件夹）复制到容器内，如果把依赖包放在源代码文件夹下，相当于第二次把这些依赖复制到容器内，造成不必要的空间浪费。
 - Dockerfile
-  - Base image：不用 ubuntu:bionic，可以直接用装好 ROS Melodic 的 ubuntu bionic 镜像 ros:melodic-ros-base-bionic。
+  - Base image：不用 ubuntu:bionic，直接用装好 ROS Melodic 的 ubuntu bionic 镜像 ros:melodic-ros-base-bionic。但是要注意这样安装的 ROS 是不能直接在命令行调用 ROS command 的，需要在 `~/.bashrc` 中添加 `source /opt/ros/melodic/setup.bash`，才能保证每次开启终端的时候会同时得到 ROS command 的 access.（参考 [Installing and Configuring Your ROS Environment](http://wiki.ros.org/ROS/Tutorials/InstallingandConfiguringROSEnvironment)）
   - Later installation
     - RealSense SDK & RealSense ROS Package
     - Lidar dependencies & Lidar ROS Package
