@@ -23,7 +23,7 @@
     - Lidar dependencies & Lidar ROS Package
     - ...
 - 依赖包位置
-  - 操作：为了减小容器的大小，把原本放在 .devcontainer 文件夹下的 3 个依赖包放到了源代码文件夹的外面，并在 *devcontainer.json* 里面设置好 *build context* 为包含源代码和依赖包的共同上级目录（这样才可以在 *Dockerfile* 里面 COPY 依赖包到容器中去）。
+  - 操作：为了减小容器的大小，把原本放在 .devcontainer 文件夹下的 3 个依赖包放到了源代码文件夹的外面，并在 *devcontainer.json* 里面设置 *build context* 为包含源代码和依赖包的共同上级目录（这样才可以在 *Dockerfile* 里面 COPY 依赖包到容器中去，因为 COPY 只能在 build context 内执行）。
   - 原因：在构建容器的过程中就已经通过 COPY 操作把依赖包复制到了容器内（因为需要在容器内 build），而 remote container 在构建完容器后，还会把主机 vscode 打开的文件夹（即源代码文件夹）复制到容器内，如果把依赖包放在源代码文件夹下，相当于第二次把这些依赖复制到容器内，造成不必要的空间浪费。
 
 
