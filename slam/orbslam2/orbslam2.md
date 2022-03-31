@@ -11,12 +11,18 @@
 > 3. [ORB-SLAM3 Docker 容器 (github)](https://github.com/jahaniam/orbslam3_docker)
 
 ### How to install
-考虑到开发和部署环境的一致性需求，选择用 docker 的方式安装 orbslam2。在 gitee 上发现有人把 orbslam2 docker 环境打包好了，可以直接使用 vscode 的 remote container 插件实现容器的创建。总的安装过程参考 [ORB-SLAM2 Docker 容器 (gitee)](https://gitee.com/wycan/orbslam2_runin_docker)。但是这个仓库只配置了 orbslam2 的环境，没有配置 ROS，RealSense 相机软件包，以及激光雷达软件包这些软件包，因此还需要自己改 *Dockerfile*。*Dockerfile* 的改动主要包括：
-- Base image：不用 ubuntu:bionic，可以直接用装好 ROS Melodic 的 ubuntu bionic 镜像。
-- Later installation
-  - RealSense SDK & RealSense ROS Package
-  - Lidar dependencies & Lidar ROS Package
-  - ...
+考虑到开发和部署环境的一致性需求，选择用 docker 的方式安装 orbslam2。总的安装过程参考了 [ORB-SLAM2 Docker 容器 (gitee)](https://gitee.com/wycan/orbslam2_runin_docker)，直接使用 vscode 的 remote container 插件实现容器的创建非常方便。<br>
+但是这个仓库只配置了 orbslam2 的环境，没有配置 ROS，RealSense 相机软件包，以及激光雷达软件包等，并且 orbslam2 的依赖包的位置不是很合理，因此需要做一些调整。<br>
+
+主要包括以下几个改动
+- Dependencies：把 orbslam2 的依赖包从 .devcontainer 文件夹中移出，移到源代码文件夹外面。<br>
+  好处：这样可以减少容器的大小。在构建容器的过程中就已经把依赖复制到了容器内（因为需要在容器内 build），而 remote container 构建完容器后，还会把主机 vscode 打开的文件夹（即源代码文件夹）复制到容器内，如果把依赖包放在源代码文件夹下，相当于第二次把这些依赖复制到容器内，造成不必要的空间浪费。
+- Dockerfile
+  - Base image：不用 ubuntu:bionic，可以直接用装好 ROS Melodic 的 ubuntu bionic 镜像 ros:melodic-ros-base-bionic。
+  - Later installation
+    - RealSense SDK & RealSense ROS Package
+    - Lidar dependencies & Lidar ROS Package
+    - ...
 
 
 **注意 [devcontainer.json](devcontainer.json) 和 [Dockerfile](Dockerfile) 文件相比于 gitee 上的有所改动。**
@@ -24,10 +30,11 @@
 ### Trouble shooting
 - Problem #1: Certificate verification failed: The certificate is NOT trusted.<br>
   - 先尝试了网上说的重装 ca-certificates，无果（通过 apt install 或手动下载 deb 包安装都没用）。
-  - 后面参考 [sudo apt update --> Certificate verification failed](https://blog.csdn.net/qlexcel/article/details/120642914) 直接把 *Dockerfile* 里面清华源的 https 换成 http，成功。（可能也可以通过设置代理的方式？）
+  - 后面参考 [sudo apt update --> Certificate verification failed](https://blog.csdn.net/qlexcel/article/details/120642914) 直接把 *Dockerfile* 里面清华源的 https 换成 http，成功了。（但不建议这样做）
+  - 最后，发现其实是因为没有设置好 https 代理的问题，所以解决方法跟下面的 Problem #2 一样。
 - Problem #2: Client network socket disconnected before secure TLS connection was established 或 XHR failed<br>
   - 首先查的log文件的最底部的报错信息，就是 *XHR failed*。看到 [stackoverflow](https://stackoverflow.com/questions/70177216/visual-studio-code-error-while-fetching-extensions-xhr-failed) 上面有个回答说是因为 vscode 和 PC 设置的 proxy 冲突了。
-  - 随后就把log文件往上看了看，发现确实是因为网络问题，还有个报错信息就是 *Client network socket disconnected before secure TLS connection was established*，于是就知道应该是小飞机的问题，应该是容器没有接上主机的代理。通过一个 [github issue](https://github.com/microsoft/vscode-remote-release/issues/986) 找到了给容器设置代理的方法，即在 *devcontainer.json* 的 settings 里设置 http.proxy（也可以加上 https.proxy）。
+  - 随后就把log文件往上看了看，发现确实是因为网络问题，还有个报错信息就是 *Client network socket disconnected before secure TLS connection was established*，于是就知道应该是小飞机的问题，应该是容器没有接上主机的代理。通过一个 [github issue](https://github.com/microsoft/vscode-remote-release/issues/986) 找到了给容器设置代理的方法，即在 *devcontainer.json* 的 settings 里设置 http.proxy（https.proxy 也加上）。
 - Problem #3: Pangolin X11: Failed to open X display
   - 参考 [askubuntu](https://askubuntu.com/questions/432255/what-is-the-display-environment-variable) ，在既有集显又有独显的电脑上，`DISPLAY=:0` 应该表示显示设备为集显，而 `DISPLAY=:1` 则表示显示设备为独显。在终端查看 `echo $DISPLAY` 发现是 `:1`，说明现在用的是独显，因此在 devcontainer.json 里面也应该把 pangolin 的窗口输出到独显上，即设置 `DISPLAY=:1`。
 - Warnings
