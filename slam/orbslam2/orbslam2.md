@@ -15,17 +15,17 @@
 但是这个仓库只配置了 orbslam2 的环境，没有配置 ROS，RealSense 相机软件包，以及激光雷达软件包等，并且 orbslam2 的依赖包的位置不是很合理，因此需要做一些调整。<br>
 
 主要包括以下几个改动
-- Dependencies：把 orbslam2 的依赖包从 .devcontainer 文件夹中移出，移到源代码文件夹外面。<br>
-  好处：这样可以减少容器的大小。在构建容器的过程中就已经把依赖复制到了容器内（因为需要在容器内 build），而 remote container 构建完容器后，还会把主机 vscode 打开的文件夹（即源代码文件夹）复制到容器内，如果把依赖包放在源代码文件夹下，相当于第二次把这些依赖复制到容器内，造成不必要的空间浪费。
-- Dockerfile
+- [devcontainer.json](./.devcontainer/devcontainer.json)
+- [Dockerfile](./.devcontainer/Dockerfile)
   - Base image：不用 ubuntu:bionic，直接用装好 ROS Melodic 的 ubuntu bionic 镜像 ros:melodic-ros-base-bionic。但是要注意这样安装的 ROS 是不能直接在命令行调用 ROS command 的，需要在 `~/.bashrc` 中添加 `source /opt/ros/melodic/setup.bash`，才能保证每次开启终端的时候会同时得到 ROS command 的 access.（参考 [Installing and Configuring Your ROS Environment](http://wiki.ros.org/ROS/Tutorials/InstallingandConfiguringROSEnvironment)）
   - Later installation
     - RealSense SDK & RealSense ROS Package
     - Lidar dependencies & Lidar ROS Package
     - ...
+- 依赖包位置
+  - 操作：为了减小容器的大小，把原本放在 .devcontainer 文件夹下的 3 个依赖包放到了源代码文件夹的外面，并在 *devcontainer.json* 里面设置好 *build context* 为包含源代码和依赖包的共同上级目录（这样才可以在 *Dockerfile* 里面 COPY 依赖包到容器中去）。
+  - 原因：在构建容器的过程中就已经通过 COPY 操作把依赖包复制到了容器内（因为需要在容器内 build），而 remote container 在构建完容器后，还会把主机 vscode 打开的文件夹（即源代码文件夹）复制到容器内，如果把依赖包放在源代码文件夹下，相当于第二次把这些依赖复制到容器内，造成不必要的空间浪费。
 
-
-**注意 [devcontainer.json](devcontainer.json) 和 [Dockerfile](Dockerfile) 文件相比于 gitee 上的有所改动。**
 
 ### Trouble shooting
 - Problem #1: Certificate verification failed: The certificate is NOT trusted.

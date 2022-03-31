@@ -55,24 +55,24 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
   # unset the environment variable DEBIAN_FRONTEND
   && unset DEBIAN_FRONTEND
 
-# install Pangolin opencv eigen3
-COPY /home/yan/Learning/slam/orbslam2/orbslam2-dependencies/ ~/orbslam2-dependencies/
-WORKDIR ~/orbslam2-dependencies
-
-# RUN cd Pangolin && export DEBIAN_FRONTEND=noninteractive \
-#   && mkdir build \
-#   && cd build \
-#   && cmake .. \
-#   && cmake --build . \
-#   && make install \
-#   # unset the environment variable DEBIAN_FRONTEND
-#   && unset DEBIAN_FRONTEND
+# install eigen3 Pangolin opencv
+WORKDIR /orbslam2-dependencies
+COPY /orbslam2-dependencies/ .
 
 # RUN cd eigen-3.3.5 && export DEBIAN_FRONTEND=noninteractive \
 #   && mkdir build \
 #   && cd build \
 #   && cmake .. \
 #   && make -j$(nproc) \
+#   && make install \
+#   # unset the environment variable DEBIAN_FRONTEND
+#   && unset DEBIAN_FRONTEND
+
+# RUN cd Pangolin && export DEBIAN_FRONTEND=noninteractive \
+#   && mkdir build \
+#   && cd build \
+#   && cmake .. \
+#   && cmake --build . \
 #   && make install \
 #   # unset the environment variable DEBIAN_FRONTEND
 #   && unset DEBIAN_FRONTEND
