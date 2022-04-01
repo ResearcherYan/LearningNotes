@@ -2,7 +2,10 @@
 // https://github.com/microsoft/vscode-dev-containers/tree/v0.231.0/containers/ubuntu
 {
   "name": "Ubuntu 18.04 & ROS melodic",
-  "dockerFile": "Dockerfile",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "/home/yan/Learning/slam/orbslam2",
+  },
   "runArgs": [
     // mount point
     "-v",

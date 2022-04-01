@@ -59,47 +59,47 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
 WORKDIR /orbslam2-dependencies
 COPY /orbslam2-dependencies/ .
 
-# RUN cd eigen-3.3.5 && export DEBIAN_FRONTEND=noninteractive \
-#   && mkdir build \
-#   && cd build \
-#   && cmake .. \
-#   && make -j$(nproc) \
-#   && make install \
-#   # unset the environment variable DEBIAN_FRONTEND
-#   && unset DEBIAN_FRONTEND
+RUN cd eigen-3.3.5 && export DEBIAN_FRONTEND=noninteractive \
+  && mkdir build \
+  && cd build \
+  && cmake .. \
+  && make -j$(nproc) \
+  && make install \
+  # unset the environment variable DEBIAN_FRONTEND
+  && unset DEBIAN_FRONTEND
 
-# RUN cd Pangolin && export DEBIAN_FRONTEND=noninteractive \
-#   && mkdir build \
-#   && cd build \
-#   && cmake .. \
-#   && cmake --build . \
-#   && make install \
-#   # unset the environment variable DEBIAN_FRONTEND
-#   && unset DEBIAN_FRONTEND
+RUN cd Pangolin && export DEBIAN_FRONTEND=noninteractive \
+  && mkdir build \
+  && cd build \
+  && cmake .. \
+  && cmake --build . \
+  && make install \
+  # unset the environment variable DEBIAN_FRONTEND
+  && unset DEBIAN_FRONTEND
 
-# RUN cd opencv-3.2.0 && export DEBIAN_FRONTEND=noninteractive \
-#   && mkdir build \
-#   && cd build \
-#   && cmake -D CMAKE_BUILD_TYPE=Release BUILD_DOCS BUILD_EXAMPLES .. \
-#   && make -j$(nproc) \
-#   && make install \
-#   # unset the environment variable DEBIAN_FRONTEND
-#   && unset DEBIAN_FRONTEND
+RUN cd opencv-3.2.0 && export DEBIAN_FRONTEND=noninteractive \
+  && mkdir build \
+  && cd build \
+  && cmake -D CMAKE_BUILD_TYPE=Release BUILD_DOCS BUILD_EXAMPLES .. \
+  && make -j$(nproc) \
+  && make install \
+  # unset the environment variable DEBIAN_FRONTEND
+  && unset DEBIAN_FRONTEND
 
-# # install RealSense SDK
-# RUN export DEBIAN_FRONTEND=noninteractive \
-#   # Register the server's public key
-#   apt-key adv --keyserver keyserver.ubuntu.com --recv-key F6E65AC044F831AC80A06380C8B3A55A6F3EFCDE \
-#   || apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-key F6E65AC044F831AC80A06380C8B3A55A6F3EFCDE \
-#   # install software-properties-common in order to use the command "add-apt-repository"
-#   && apt-get install software-properties-common -y \
-#   # Add the server to the list of repositories
-#   && add-apt-repository "deb https://librealsense.intel.com/Debian/apt-repo $(lsb_release -cs) main" -u \
-#   # Install the libraries
-#   && apt-get install -y \
-#   librealsense2-dkms librealsense2-utils \
-#   # unset the environment variable DEBIAN_FRONTEND
-#   && unset DEBIAN_FRONTEND
+# install RealSense SDK
+RUN export DEBIAN_FRONTEND=noninteractive \
+  # Register the server's public key
+  && apt-key adv --keyserver keyserver.ubuntu.com --recv-key F6E65AC044F831AC80A06380C8B3A55A6F3EFCDE \
+  || apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-key F6E65AC044F831AC80A06380C8B3A55A6F3EFCDE \
+  # install software-properties-common in order to use the command "add-apt-repository"
+  && apt-get install software-properties-common -y \
+  # Add the server to the list of repositories
+  && add-apt-repository "deb https://librealsense.intel.com/Debian/apt-repo $(lsb_release -cs) main" -u \
+  # Install the libraries
+  && apt-get install -y \
+  librealsense2-dkms librealsense2-utils \
+  # unset the environment variable DEBIAN_FRONTEND
+  && unset DEBIAN_FRONTEND
 
 # # install ros wrapper for realsense camera
 # # Create a catkin workspace Ubuntu
