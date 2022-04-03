@@ -101,25 +101,54 @@ RUN export DEBIAN_FRONTEND=noninteractive \
   # unset the environment variable DEBIAN_FRONTEND
   && unset DEBIAN_FRONTEND
 
-# # install ros wrapper for realsense camera
-# # Create a catkin workspace Ubuntu
-# WORKDIR /catkin_ws/src
-# RUN export DEBIAN_FRONTEND=noninteractive \
-#   # git clone the Intel RealSense ROS
-#   git clone https://github.com/IntelRealSense/realsense-ros.git \
-#   && cd realsense-ros/ \
-#   && git checkout `git tag | sort -V | grep -P "^2.\d+\.\d+" | tail -1` \
-#   && cd .. \
-#   # git clone the ros package ddynamic_reconfigure
-#   && git clone https://github.com/pal-robotics/ddynamic_reconfigure.git \
-#   # make & install
-#   && catkin_init_workspace \
-#   && cd .. \
-#   && catkin_make clean \
-#   && catkin_make -DCATKIN_ENABLE_TESTING=False -DCMAKE_BUILD_TYPE=Release \
-#   && catkin_make install \
-#   # setup environment
-#   && echo "source ~/catkin_ws/devel/setup.bash" >> ~/.bashrc \
-#   && source ~/.bashrc \
-#   # unset the environment variable DEBIAN_FRONTEND
-#   && unset DEBIAN_FRONTEND
+# install ros wrapper for realsense camera
+# 1.安装缺失的依赖（cmake报错一个个试出来的）
+# 默认的 shell 是 /bin/sh，使用 /bin/bash 才能用 source 命令（source 在 /bin/sh 下为 . ）
+SHELL ["/bin/bash", "-c"]
+RUN export DEBIAN_FRONTEND=noninteractive \
+  # install missing dependencies
+  && apt-get update \
+  && apt-get install -y \
+  ros-melodic-cv-bridge \
+  ros-melodic-image-transport \
+  ros-melodic-tf \
+  ros-melodic-diagnostic-updater \
+  librealsense2-dev \
+  # unset the environment variable DEBIAN_FRONTEND
+  && unset DEBIAN_FRONTEND
+
+# 2.正式安装 Intel RealSense ROS
+RUN export DEBIAN_FRONTEND=noninteractive \
+  # Create a catkin workspace Ubuntu（这里不要用WORKDIR，WORKDIR确实可以自动创建不存在的目录，但在 build process 结束后就被自动删除掉了，所以还是用手动的 mkdir）
+  && mkdir -p ~/catkin_ws/src \
+  && cd ~/catkin_ws/src \
+  # git clone the Intel RealSense ROS
+  && git clone https://github.com/IntelRealSense/realsense-ros.git \
+  && cd realsense-ros/ \
+  && git checkout `git tag | sort -V | grep -P "^2.\d+\.\d+" | tail -1` \
+  && cd .. \
+  # git clone the ros package ddynamic_reconfigure
+  && git clone https://github.com/pal-robotics/ddynamic_reconfigure.git \
+  #
+  # 保证每次启动终端都能得到 ROS command 的 access
+  && echo "source /opt/ros/melodic/setup.bash" >> ~/.bashrc \
+  && source ~/.bashrc \
+  # 上面的 source ~/.bashrc 不会在镜像的 build 过程中马上生效，所以还需要把源文件 source 一下
+  && source /opt/ros/melodic/setup.bash \
+  #
+  && catkin_init_workspace \
+  && cd .. \
+  && catkin_make clean \
+  && catkin_make -DCATKIN_ENABLE_TESTING=False -DCMAKE_BUILD_TYPE=Release \
+  && catkin_make install \
+  # setup environment
+  && echo "source ~/catkin_ws/devel/setup.bash" >> ~/.bashrc \
+  && source ~/.bashrc \
+  # unset the environment variable DEBIAN_FRONTEND
+  && unset DEBIAN_FRONTEND
+
+# 补安装一个包，为了启动 realsense camera
+RUN export DEBIAN_FRONTEND=noninteractive \
+  && apt-get update && apt-get install -y ros-melodic-rgbd-launch \
+  # unset the environment variable DEBIAN_FRONTEND
+  && unset DEBIAN_FRONTEND

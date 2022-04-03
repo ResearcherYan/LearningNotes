@@ -1,3 +1,5 @@
+> 本文主要介绍如何构建 orbslam2 的 docker 环境（带有 ROS 和 realsense ROS package），不包括 orbslam2 的 build 过程。
+
 > CONTENT
 - [Installation](#installation)
   - [Install method: Docker & VSCode Remote Container](#install-method-docker--vscode-remote-container)
