@@ -184,9 +184,10 @@
 
 
 ## 参考链接
-1. [ORB-SLAM2 Docker 容器 (gitee)](https://gitee.com/wycan/orbslam2_runin_docker)
-2. [使用Realsense D435相机在ROS Kinetic中跑通ORB-SLAM2](https://blog.csdn.net/Carminljm/article/details/86353775)
-3. [RealSense ROS Package Installation](https://github.com/IntelRealSense/realsense-ros)
+1. [ORB-SLAM2 官方 github](https://github.com/raulmur/ORB_SLAM2)
+2. [ORB-SLAM2 Docker 容器 (gitee)](https://gitee.com/wycan/orbslam2_runin_docker)
+3. [使用Realsense D435相机在ROS Kinetic中跑通ORB-SLAM2](https://blog.csdn.net/Carminljm/article/details/86353775)
+4. [RealSense ROS Package Installation](https://github.com/IntelRealSense/realsense-ros)
 
 > 备用链接
 > 1. [带 GPU 驱动 (libnvidia-container) 的安装方法](https://blog.csdn.net/WEINILUO/article/details/118659410)
