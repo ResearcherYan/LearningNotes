@@ -3,6 +3,11 @@
 > CONTENT
 - [Image Building](#image-building)
   - [Procedures](#procedures)
+    - [1. 准备工作目录](#1-准备工作目录)
+    - [2. git clone & 完善工作目录](#2-git-clone--完善工作目录)
+    - [3. 修改 ORB_SLAM2 源代码](#3-修改-orb_slam2-源代码)
+    - [4. 使用 VSCode Remote Container 构建镜像](#4-使用-vscode-remote-container-构建镜像)
+    - [5. 运行 ORB_SLAM2 的 RGBD demo](#5-运行-orb_slam2-的-rgbd-demo)
   - [devcontainer.json 和 Dockerfile 的改动（相较于 gitee 仓库）](#devcontainerjson-和-dockerfile-的改动相较于-gitee-仓库)
   - [如何获取相机信息](#如何获取相机信息)
 - [Trouble shooting](#trouble-shooting)
@@ -27,46 +32,54 @@
 
 ### Procedures
 请在同一个终端执行 *Procedures* 这一节里的所有命令。
-1. 准备工作目录
-   ```bash
-   # 创建工作目录，如 /home/yan/Learning/slam/orbslam2
-   mkdir -p /home/yan/Learning/slam/orbslam2
-   cd /home/yan/Learning/slam/orbslam2
-   # 创建一个用于 vscode 打开的目录（后面会用 vscode 打开这个目录，然后连接到 remote container）
-   mkdir vscode-folder
-   ```
-   接下来需要手动操作一步：把本仓库的 [.devcontainer 文件夹](./.devcontainer) 复制到 vscode-folder 里。
-   > 为什么要单独设立一个 vscode-folder，并且里面只装 .devcontainer 文件夹？
-   > - 不把依赖包放在 vscode-folder 下的原因：在构建容器的过程中就已经通过 COPY 操作把依赖包复制到了容器内（因为需要在构建容器的过程中 build 这些依赖包），而 remote container 在构建完容器后，还会把主机 vscode 打开的文件夹（即 vscode-folder）复制到容器内，如果像 [gitee 仓库](https://gitee.com/wycan/orbslam2_runin_docker) 那样把依赖包放在 vscode-folder 下，相当于第二次把这些依赖复制到容器内，造成不必要的空间浪费（接近0.5G）。
-   > - 不把源代码文件放在 vscode-folder 下的原因：同理，由于需要在构建容器的过程中 build ORB_SLAM2 源代码，就需要通过 COPY 操作把源代码复制到容器内，如果像 [gitee 仓库](https://gitee.com/wycan/orbslam2_runin_docker) 那样把源代码放在 vscode-folder 下，相当于第二次把源代码复制到容器内，源代码位置太多不好管理。
-2. git clone & 完善
-   ```bash
-   # orbslam2 docker 环境（主要用到里面的 3 个依赖包），这个仓库 copy 到 orbslam2 文件夹外面
-   cd .. && git clone https://gitee.com/wycan/orbslam2_runin_docker.git
-   # 把这个仓库里的 3 个依赖包 copy 到相应文件夹内
-   mkdir orbslam2/orbslam2-dependencies && cp -r orbslam2_runin_docker-master/.devcontainer/extendmodel/* orbslam2/orbslam2-dependencies
-   # ORB_SLAM2 源码
-   cd orbslam2 && git clone https://github.com/raulmur/ORB_SLAM2.git
-   # RealSense ROS Package
-   git clone https://github.com/IntelRealSense/realsense-ros.git
-   # RealSense ROS Package 的依赖包
-   git clone https://github.com/pal-robotics/ddynamic_reconfigure.git
-   ```
-3. 修改 ORB_SLAM2 源代码文件夹
-   - 删除 *.git* 文件夹和 *.gitigore* 文件（以免后面用 VSCode 编辑的时候 git 扩展总会显示一堆更改）
-    ```bash
-    cd ORB_SLAM2 && rm .git .gitignore
-    ```
-   - 修改源码，以避免报错
-     - 在 */include/System.h* 中加上 `#include <unistd.h>`。否则会导致 [Problem #7](#problem-7-error-usleep-was-not-declared-in-this-scope)。
-     - 修改 */Examples/ROS/ORB_SLAM2/CMakeLists.txt*，修改方法参考[Problem #9](#problem-9-undefined-reference-to-symbol-_zn5boost6system15system_categoryev)。
-     - 用本仓库的 [build.sh](src/build.sh) 和 [build_ros.sh](src/build_ros.sh)，以替代源码里的这两个文件。否则后面在 build ORB_SLAM2 源码的过程中可能会遇到 [Problem #8](#problem-8-fatal-error-configh-no-such-file-or-directory) 或 [Problem #10](#problem-10-re-run-cmake-with-a-different-source-directory)。
-   - 将相机信息写入源码中（获取相机信息的方法参考 [如何获取相机信息](#如何获取相机信息) ）
-     - 把本仓库下的 [AsusD455.yaml](src/AsusD455.yaml) 复制到 */Examples/ROS/ORB_SLAM2* 下。
-     - 把本仓库下的 [ros_rgbd.cc](src/ros_rgbd.cc) 复制到 */Examples/ROS/ORB_SLAM2/src* 下，替换掉同名文件。
-4. 使用 VSCode Remote Container 构建镜像
-   - 在主机终端输入 `xhost +`，许可所有用户都可访问 xserver（此设置在主机重启后会失效）。
-   - 用 VSCode 打开文件夹 *vscode-folder*，然后在 command palatte 中输入 `Reopen in Container` 即会开始构建镜像。
+#### 1. 准备工作目录
+```bash
+# 创建工作目录，如 /home/yan/Learning/slam/orbslam2
+mkdir -p /home/yan/Learning/slam/orbslam2
+cd /home/yan/Learning/slam/orbslam2
+# 创建一个用于 vscode 打开的目录（后面会用 vscode 打开这个目录，然后连接到 remote container）
+mkdir vscode-folder
+```
+接下来需要手动操作一步：把本仓库的 [.devcontainer 文件夹](./.devcontainer) 复制到 vscode-folder 里。
+> 为什么要单独设立一个 vscode-folder，并且里面只装 .devcontainer 文件夹？
+> - 不把依赖包放在 vscode-folder 下的原因：在构建容器的过程中就已经通过 COPY 操作把依赖包复制到了容器内（因为需要在构建容器的过程中 build 这些依赖包），而 remote container 在构建完容器后，还会把主机 vscode 打开的文件夹（即 vscode-folder）复制到容器内，如果像 [gitee 仓库](https://gitee.com/wycan/orbslam2_runin_docker) 那样把依赖包放在 vscode-folder 下，相当于第二次把这些依赖复制到容器内，造成不必要的空间浪费（接近0.5G）。
+> - 不把源代码文件放在 vscode-folder 下的原因：同理，由于需要在构建容器的过程中 build ORB_SLAM2 源代码，就需要通过 COPY 操作把源代码复制到容器内，如果像 [gitee 仓库](https://gitee.com/wycan/orbslam2_runin_docker) 那样把源代码放在 vscode-folder 下，相当于第二次把源代码复制到容器内，源代码位置太多不好管理。
+
+#### 2. git clone & 完善工作目录
+```bash
+# orbslam2 docker 环境（主要用到里面的 3 个依赖包），这个仓库 copy 到 orbslam2 文件夹外面
+cd .. && git clone https://gitee.com/wycan/orbslam2_runin_docker.git
+# 把这个仓库里的 3 个依赖包 copy 到相应文件夹内
+mkdir orbslam2/orbslam2-dependencies && cp -r orbslam2_runin_docker-master/.devcontainer/extendmodel/* orbslam2/orbslam2-dependencies
+# ORB_SLAM2 源码
+cd orbslam2 && git clone https://github.com/raulmur/ORB_SLAM2.git
+# RealSense ROS Package
+git clone https://github.com/IntelRealSense/realsense-ros.git
+# RealSense ROS Package 的依赖包
+git clone https://github.com/pal-robotics/ddynamic_reconfigure.git
+```
+#### 3. 修改 ORB_SLAM2 源代码
+- 删除 *.git* 文件夹和 *.gitigore* 文件（以免后面用 VSCode 编辑的时候 git 扩展总会显示一堆更改）
+```bash
+cd ORB_SLAM2 && rm .git .gitignore
+```
+- 修改源码，以避免报错
+  - 在 */include/System.h* 中加上 `#include <unistd.h>`。否则会导致 [Problem #7](#problem-7-error-usleep-was-not-declared-in-this-scope)。
+  - 修改 */Examples/ROS/ORB_SLAM2/CMakeLists.txt*，修改方法参考[Problem #9](#problem-9-undefined-reference-to-symbol-_zn5boost6system15system_categoryev)。
+  - 用本仓库的 [build.sh](src/build.sh) 和 [build_ros.sh](src/build_ros.sh)，以替代源码里的这两个文件。否则后面在 build ORB_SLAM2 源码的过程中可能会遇到 [Problem #8](#problem-8-fatal-error-configh-no-such-file-or-directory) 或 [Problem #10](#problem-10-re-run-cmake-with-a-different-source-directory)。
+- 将相机信息写入源码中（获取相机信息的方法参考 [如何获取相机信息](#如何获取相机信息) ）
+  - 把本仓库下的 [AsusD455.yaml](src/AsusD455.yaml) 复制到 */Examples/ROS/ORB_SLAM2* 下。
+  - 把本仓库下的 [ros_rgbd.cc](src/ros_rgbd.cc) 复制到 */Examples/ROS/ORB_SLAM2/src* 下，替换掉同名文件。
+
+#### 4. 使用 VSCode Remote Container 构建镜像
+- 在主机终端输入 `xhost +`，许可所有用户都可访问 xserver（此设置在主机重启后会失效）。
+- 用 VSCode 打开文件夹 *vscode-folder*，然后在 command palatte 中输入 `Reopen in Container` 即会开始构建镜像。
+
+#### 5. 运行 ORB_SLAM2 的 RGBD demo
+打开三个终端
+- `roscore`
+- `roslaunch realsense2_camera rs_rgbd.launch`
+- `rosrun ORB_SLAM2 RGBD /root/catkin_ws/ORB_SLAM2/Vocabulary/ORBvoc.txt /root/catkin_ws/ORB_SLAM2/Examples/ROS/ORB_SLAM2/AsusD455.yaml`
 
 ### devcontainer.json 和 Dockerfile 的改动（相较于 gitee 仓库）
 - [devcontainer.json](./.devcontainer/devcontainer.json)
