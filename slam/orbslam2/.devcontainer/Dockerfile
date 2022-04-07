@@ -1,31 +1,32 @@
 FROM ros:melodic-ros-base-bionic
 
+# Avoid warnings by switching to noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
+
 # 中科大源（比清华源快）
-RUN echo "deb https://mirrors.ustc.edu.cn/ubuntu/ bionic main restricted universe multiverse \n \
-  deb-src https://mirrors.ustc.edu.cn/ubuntu/ bionic main restricted universe multiverse \n \
-  deb https://mirrors.ustc.edu.cn/ubuntu/ bionic-updates main restricted universe multiverse \n \
-  deb-src https://mirrors.ustc.edu.cn/ubuntu/ bionic-updates main restricted universe multiverse \n \
-  deb https://mirrors.ustc.edu.cn/ubuntu/ bionic-backports main restricted universe multiverse \n \
-  deb-src https://mirrors.ustc.edu.cn/ubuntu/ bionic-backports main restricted universe multiverse \n \
-  deb https://mirrors.ustc.edu.cn/ubuntu/ bionic-security main restricted universe multiverse \n \
-  deb-src https://mirrors.ustc.edu.cn/ubuntu/ bionic-security main restricted universe multiverse \n \
-  deb https://mirrors.ustc.edu.cn/ubuntu/ bionic-proposed main restricted universe multiverse \n \
+RUN echo "deb https://mirrors.ustc.edu.cn/ubuntu/ bionic main restricted universe multiverse \n\
+  deb-src https://mirrors.ustc.edu.cn/ubuntu/ bionic main restricted universe multiverse \n\
+  deb https://mirrors.ustc.edu.cn/ubuntu/ bionic-updates main restricted universe multiverse \n\
+  deb-src https://mirrors.ustc.edu.cn/ubuntu/ bionic-updates main restricted universe multiverse \n\
+  deb https://mirrors.ustc.edu.cn/ubuntu/ bionic-backports main restricted universe multiverse \n\
+  deb-src https://mirrors.ustc.edu.cn/ubuntu/ bionic-backports main restricted universe multiverse \n\
+  deb https://mirrors.ustc.edu.cn/ubuntu/ bionic-security main restricted universe multiverse \n\
+  deb-src https://mirrors.ustc.edu.cn/ubuntu/ bionic-security main restricted universe multiverse \n\
+  deb https://mirrors.ustc.edu.cn/ubuntu/ bionic-proposed main restricted universe multiverse \n\
   deb-src https://mirrors.ustc.edu.cn/ubuntu/ bionic-proposed main restricted universe multiverse" > /etc/apt/sources.list
 
 # Configure apt and install packages
-RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
+RUN apt-get update \
   && apt-get -y install --no-install-recommends apt-utils dialog 2>&1 \
   # Verify git, process tools, lsb-release (common in install instructions for CLIs) installed
   && apt-get -y install git iproute2 procps lsb-release \
   # Clean up
   && apt-get autoremove -y \
   && apt-get clean -y \
-  && rm -rf /var/lib/apt/lists/* \
-  # unset the environment variable DEBIAN_FRONTEND
-  && unset DEBIAN_FRONTEND
+  && rm -rf /var/lib/apt/lists/*
 
 # install Pangolin Dependencies
-RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
+RUN apt-get update \
   && apt-get -y install cmake \
   gcc g++ \
   libgl1-mesa-dev \  
@@ -43,112 +44,98 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
   # install FFMPEG (For video decoding and image rescaling) 
   libdc1394-22-dev libraw1394-dev \ 
   # install DC1394 (For firewire input) 
-  libjpeg-dev libtiff5-dev libopenexr-dev \
-  # unset the environment variable DEBIAN_FRONTEND
-  && unset DEBIAN_FRONTEND
+  libjpeg-dev libtiff5-dev libopenexr-dev
 
 # install opencv Dependencies
-RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
+RUN apt-get update \
   && apt-get -y install build-essential \
   cmake git libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev libswscale-dev \
-  libtbb2 libtbb-dev libjpeg-dev libpng-dev libtiff-dev libdc1394-22-dev \
-  # unset the environment variable DEBIAN_FRONTEND
-  && unset DEBIAN_FRONTEND
+  libtbb2 libtbb-dev libjpeg-dev libpng-dev libtiff-dev libdc1394-22-dev
 
-# install eigen3 Pangolin opencv
+# install dependencies: eigen3 Pangolin opencv
 WORKDIR /orbslam2-dependencies
 COPY /orbslam2-dependencies/ .
 
-RUN cd eigen-3.3.5 && export DEBIAN_FRONTEND=noninteractive \
+RUN cd eigen-3.3.5 \
   && mkdir build \
   && cd build \
   && cmake .. \
   && make -j$(nproc) \
-  && make install \
-  # unset the environment variable DEBIAN_FRONTEND
-  && unset DEBIAN_FRONTEND
+  && make install
 
-RUN cd Pangolin && export DEBIAN_FRONTEND=noninteractive \
+RUN cd Pangolin \
   && mkdir build \
   && cd build \
   && cmake .. \
   && cmake --build . \
-  && make install \
-  # unset the environment variable DEBIAN_FRONTEND
-  && unset DEBIAN_FRONTEND
+  && make install
 
-RUN cd opencv-3.2.0 && export DEBIAN_FRONTEND=noninteractive \
+RUN cd opencv-3.2.0 \
   && mkdir build \
   && cd build \
   && cmake -D CMAKE_BUILD_TYPE=Release BUILD_DOCS BUILD_EXAMPLES .. \
   && make -j$(nproc) \
-  && make install \
-  # unset the environment variable DEBIAN_FRONTEND
-  && unset DEBIAN_FRONTEND
+  && make install
 
 # install RealSense SDK
-RUN export DEBIAN_FRONTEND=noninteractive \
+RUN \
   # Register the server's public key
-  && apt-key adv --keyserver keyserver.ubuntu.com --recv-key F6E65AC044F831AC80A06380C8B3A55A6F3EFCDE \
+  apt-key adv --keyserver keyserver.ubuntu.com --recv-key F6E65AC044F831AC80A06380C8B3A55A6F3EFCDE \
   || apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-key F6E65AC044F831AC80A06380C8B3A55A6F3EFCDE \
   # install software-properties-common in order to use the command "add-apt-repository"
   && apt-get install software-properties-common -y \
   # Add the server to the list of repositories
   && add-apt-repository "deb https://librealsense.intel.com/Debian/apt-repo $(lsb_release -cs) main" -u \
   # Install the libraries
-  && apt-get install -y \
-  librealsense2-dkms librealsense2-utils \
-  # unset the environment variable DEBIAN_FRONTEND
-  && unset DEBIAN_FRONTEND
+  && apt-get update && apt-get install -y \
+  librealsense2-dkms librealsense2-utils
 
 # install ros wrapper for realsense camera
 # 1.安装缺失的依赖（cmake报错一个个试出来的）
-# 默认的 shell 是 /bin/sh，使用 /bin/bash 才能用 source 命令（source 在 /bin/sh 下为 . ）
-SHELL ["/bin/bash", "-c"]
-RUN export DEBIAN_FRONTEND=noninteractive \
-  # install missing dependencies
-  && apt-get update \
+RUN apt-get update \
   && apt-get install -y \
   ros-melodic-cv-bridge \
   ros-melodic-image-transport \
   ros-melodic-tf \
   ros-melodic-diagnostic-updater \
   librealsense2-dev \
-  # unset the environment variable DEBIAN_FRONTEND
-  && unset DEBIAN_FRONTEND
+  ros-melodic-rgbd-launch
 
 # 2.正式安装 Intel RealSense ROS
-RUN export DEBIAN_FRONTEND=noninteractive \
-  # Create a catkin workspace Ubuntu（这里不要用WORKDIR，WORKDIR确实可以自动创建不存在的目录，但在 build process 结束后就被自动删除掉了，所以还是用手动的 mkdir）
-  && mkdir -p ~/catkin_ws/src \
-  && cd ~/catkin_ws/src \
-  # git clone the Intel RealSense ROS
-  && git clone https://github.com/IntelRealSense/realsense-ros.git \
-  && cd realsense-ros/ \
+# 默认的 shell 是 /bin/sh，使用 /bin/bash 才能用 source 命令（source 在 /bin/sh 下为 . ）
+SHELL ["/bin/bash", "-c"]
+# git clone 容易出网络问题（有时候开了代理也不行），所以直接本地下载好再 COPY 到容器里
+WORKDIR /root/catkin_ws/src/
+COPY realsense-ros ./realsense-ros
+COPY ddynamic_reconfigure ./ddynamic_reconfigure
+
+RUN cd realsense-ros/ \
   && git checkout `git tag | sort -V | grep -P "^2.\d+\.\d+" | tail -1` \
   && cd .. \
-  # git clone the ros package ddynamic_reconfigure
-  && git clone https://github.com/pal-robotics/ddynamic_reconfigure.git \
-  #
-  # 保证每次启动终端都能得到 ROS command 的 access
-  && echo "source /opt/ros/melodic/setup.bash" >> ~/.bashrc \
-  && source ~/.bashrc \
-  # 上面的 source ~/.bashrc 不会在镜像的 build 过程中马上生效，所以还需要把源文件 source 一下
+  # 如果把 source /opt/ros/melodic/setup.bash 写到 .bashrc 里面，然后直接 source /root/.bashrc 是行不通的。因为 source /root/.bashrc 并不会在镜像的 build 过程中马上生效。
+  # 所以需要直接 source 源文件，才能使用 catkin_init_workspace 命令。
   && source /opt/ros/melodic/setup.bash \
   #
   && catkin_init_workspace \
   && cd .. \
   && catkin_make clean \
   && catkin_make -DCATKIN_ENABLE_TESTING=False -DCMAKE_BUILD_TYPE=Release \
-  && catkin_make install \
-  # setup environment
-  && echo "source ~/catkin_ws/devel/setup.bash" >> ~/.bashrc \
-  && source ~/.bashrc \
-  # unset the environment variable DEBIAN_FRONTEND
-  && unset DEBIAN_FRONTEND
+  && catkin_make install
 
-# 补安装一个包，为了启动 realsense camera
-RUN export DEBIAN_FRONTEND=noninteractive \
-  && apt-get update && apt-get install -y ros-melodic-rgbd-launch \
-  # unset the environment variable DEBIAN_FRONTEND
-  && unset DEBIAN_FRONTEND
+# Build ORB-SLAM2
+WORKDIR /root/catkin_ws/ORB_SLAM2
+# 复制源代码
+COPY /ORB_SLAM2 .
+RUN ./build.sh \
+  && source /opt/ros/melodic/setup.bash \
+  && source /root/catkin_ws/devel/setup.bash \
+  && export ROS_PACKAGE_PATH=${ROS_PACKAGE_PATH}:/root/catkin_ws/ORB_SLAM2/Examples/ROS \
+  # 执行完上面三句后，${ROS_PACKAGE_PATH} 的值应该为 /root/catkin_ws/src:/opt/ros/melodic/share:/root/catkin_ws/ORB_SLAM2/Examples/ROS
+  && ./build_ros.sh \
+  # 设置 ROS 相关的环境变量，保证每次启动终端 bash 都能找到到 ROS 相关的command
+  && echo "source /opt/ros/melodic/setup.bash" >> /root/.bashrc \
+  && echo "source /root/catkin_ws/devel/setup.bash" >> /root/.bashrc \
+  && echo "export ROS_PACKAGE_PATH=${ROS_PACKAGE_PATH}" >> /root/.bashrc
+
+# Switch back to dialog for any ad-hoc use of apt-get
+ENV DEBIAN_FRONTEND=
