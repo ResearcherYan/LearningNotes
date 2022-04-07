@@ -10,6 +10,8 @@
     - [Problem #2: Client network socket disconnected before secure TLS connection was established 或 XHR failed](#problem-2-client-network-socket-disconnected-before-secure-tls-connection-was-established-或-xhr-failed)
     - [Problem #3: Pangolin X11: Failed to open X display](#problem-3-pangolin-x11-failed-to-open-x-display)
     - [Problem #4: No protocol specified.](#problem-4-no-protocol-specified)
+    - [Problem #5: error checking context: 'no permission to read from '.../ORB_SLAM2/core](#problem-5-error-checking-context-no-permission-to-read-from-orb_slam2core)
+    - [Problem #6: apt-utils : Depends: apt (= 1.6.1) but 1.6.14 is to be installed](#problem-6-apt-utils--depends-apt--161-but-1614-is-to-be-installed)
     - [Warnings](#warnings)
 - [参考链接](#参考链接)
 ## Installation
@@ -44,7 +46,7 @@
   - Base image：不用 ubuntu:bionic，直接用装好 ROS Melodic 的 ubuntu bionic 镜像 ros:melodic-ros-base-bionic。但是要注意这样安装的 ROS 是不能直接在命令行调用 ROS command 的，需要在 `~/.bashrc` 中添加 `source /opt/ros/melodic/setup.bash`，才能保证每次开启终端的时候会同时得到 ROS command 的 access.（参考 [Installing and Configuring Your ROS Environment](http://wiki.ros.org/ROS/Tutorials/InstallingandConfiguringROSEnvironment)）
   - User: 删除了几个关于 user 的 `ARG` 指令，直接用 root user。
   - Downloading source: 下载源换成了中科大的源，比清华源快很多。
-  - DEBIAN_FRONTEND: 不再通过 `ENV` 的方式来设置环境变量 DEBIAN_FRONTEND，改为即用即销，即哪一层需要用到 DEBIAN_FRONTEND 就在哪一层设置，并且用完后立即 unset。
+  - DEBIAN_FRONTEND: 在尝试构建镜像的过程中，不通过 `ENV` 的方式来设置环境变量 DEBIAN_FRONTEND，改为即用即销，即哪一层需要用到 DEBIAN_FRONTEND 就在哪一层设置，并且用完后立即 unset。完整跑通一遍镜像构建后，可以再把 DEBIAN_FRONTEND 改为全局的 `ENV`。
   - More packages installation
     - RealSense SDK & RealSense ROS Package
     - Lidar dependencies & Lidar ROS Package
@@ -65,6 +67,12 @@
 
 #### Problem #4: No protocol specified.
 - 如果重启了主机，但没有用 `xhost +` 来许可所有用户都可访问 xserver，启动镜像后运行 `realsense-viewer` 就会报这个错误。
+
+#### Problem #5: error checking context: 'no permission to read from '.../ORB_SLAM2/core
+- 因为在 container 里是用 root 用户的身份去 build 的，所以回到本地环境再次用 remote container 打开 *ORB_SLAM2* 文件夹的时候会报权限错误，此时只需要重置一下当前用户对 *ORB_SLAM2* 文件夹的权限：`sudo chown -R $USER: /home/yan/Learning/slam/orbslam2/ORB_SLAM2`。
+
+#### Problem #6: apt-utils : Depends: apt (= 1.6.1) but 1.6.14 is to be installed
+- 如果在 *Dockerfile* 最开始就执行 `SHELL ["/bin/bash", "-c"]`，在 apt install 的时候就会报这个错误，因为在 build 的时候默认用的 shell 是 /bin/sh。
 
 #### Warnings
   - 如果在 *devcontainer.json* 文件中没有指明 device 的文件位置的话，就会报下面的这些 warning（虽然写的是 error，但不影响程序运行）<br>

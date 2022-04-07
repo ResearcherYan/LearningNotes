@@ -27,6 +27,7 @@
   - [* USER](#-user)
   - [* ONBUILD](#-onbuild)
   - [* ARG](#-arg)
+- [Tips](#tips)
 
 > 参考链接：[Best practices for writing Dockerfiles](https://docs.docker.com/develop/develop-images/dockerfile_best-practices/)<br>
 > 备用链接：[Dockerfile reference](https://docs.docker.com/engine/reference/builder/)
@@ -183,3 +184,6 @@ If a service can run without privileges, use `USER` to change to a non-root user
 
 ### * ARG
 这个主要参考备用链接。`ARG` 定义了在 build time 的时候，有哪些变量是可以通过 `--build-arg <varname>=<value>` 传递给 `docker build` 命令的。使用方法为 `ARG <name>[=<default value>]`，其中 default value 可以设置也可以不设置。
+
+## Tips
+1. 不要在 VSCode Remote Container 的环境下修改 Dockerfile，这种修改是不会保存到本地的。

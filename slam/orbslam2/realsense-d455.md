@@ -21,7 +21,7 @@
 ### Step #1 - Build ORB-SLAM2
 1. 把 *ORB_SLAM2* 文件夹复制到 *catkin_ws* 文件夹中：`cp -r /workspaces/ORB_SLAM2 /root/catkin_ws/`
 2. 修改源代码：在 */include/System.h* 中加上 `#include <unistd.h>`（否则会导致 [Problem #1](#problem-1-error-usleep-was-not-declared-in-this-scope)）
-3. 运行 *build.sh*: `./build.sh`
+3. 运行 *build.sh*: `cd /root/catkin_ws/ORB_SLAM2 && ./build.sh`
 
 ### Step #2 - 获取相机信息
 1. 获取相机内参矩阵。在 *catkin* 目录下打开三个终端：
