@@ -242,7 +242,7 @@ docker 先开启一个容器，然后把刚刚创建的 volume（在主机的硬
   但其实 `docker container start` 命令的 options 其实是很少的，所以很多东西在第一次创建container的时候就已经定下来了，后面没法改，比如这个例子里面的端口映射。
 
 ### The difference between Named Volumes and Bind Mount
-<img src=img/docker_1.png>
+<img src=../img/docker_1.png>
 
 ### Others
 #### View image layers
