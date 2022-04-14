@@ -4,7 +4,7 @@
   "name": "Ubuntu 18.04 & ROS melodic",
   "build": {
     "dockerfile": "Dockerfile",
-    "context": "/home/yan/Learning/slam/orbslam2",
+    "context": "/home/yan/Learning/slam/orbslam2"
   },
   "runArgs": [
     // mount point
@@ -20,14 +20,19 @@
     // set device
     "--device=/dev/dri",
     "--privileged",
+    "--network=host"
   ],
   // Set *default* container specific settings.json values on container create.
   "settings": {
     "terminal.integrated.shell.linux": "/bin/bash",
     "http.proxyStrictSSL": false,
     "http.proxy": "http://127.0.0.1:12333",
-    "https.proxy": "https://127.0.0.1:12333",
+    "https.proxy": "http://127.0.0.1:12333",
   },
+  // "containerEnv": {
+  // 	"http_proxy": "${localEnv:http_proxy}",
+  // 	"https_proxy": "${localEnv:https_proxy}"
+  // },
   // Add the IDs of extensions you want installed when the container is created.
   "extensions": [
     "twxs.cmake",
