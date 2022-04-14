@@ -88,6 +88,8 @@ cd ORB_SLAM2 && rm .git .gitignore
   - Build context: 把 build context 设置为了安装步骤里的 *orbslam2* 文件夹，使得 *Dockerfile* 里的 COPY 指令能够在 build context 下找到需要的文件。
   - Mount Point: 把 */dev* 文件夹全部挂载上了，因为不知道 realsense camera 用的是 */dev* 里的哪个设备号。
   - User: 去掉了 runArgs 里的 `-u` 参数，即没有设置 non-root user 了，直接用的 root user。
+  - Network: 在 runArgs 里加上了 `"--network=host"`，让容器和主机共享了 network namespace，在容器直接用 127.0.0.1:12333 就可以访问主机的代理了。
+  - Proxy: 如果要在容器构建好后之后马上设置好 proxy 的环境变量，可以在设置 containerEnv。（其实建议除了 git 之外，其他能用镜像就不要用代理，直接用镜像下载还是要快一些）
 - [Dockerfile](./.devcontainer/Dockerfile)
   - Base image：不用 ubuntu:bionic，直接用装好 ROS Melodic 的 ubuntu bionic 镜像 ros:melodic-ros-base-bionic。但是要注意这样安装的 ROS 是不能直接在命令行调用 ROS command 的，需要在 `~/.bashrc` 中添加 `source /opt/ros/melodic/setup.bash`，才能保证每次开启终端的时候会同时得到 ROS command 的 access（参考 [Installing and Configuring Your ROS Environment](http://wiki.ros.org/ROS/Tutorials/InstallingandConfiguringROSEnvironment)），这个已经写到了 *Dockerfile* 里面，所以不用担心。
   - User: 删除了几个关于 user 的 `ARG` 指令，直接用 root user。
@@ -111,7 +113,7 @@ cd ORB_SLAM2 && rm .git .gitignore
 4. 更改源代码中 camera data 和 depth data 的位置：在 *Examples/ROS/ORB_SLAM2/src/ros_rgbd.cc* 将 rgb_sub 的路径和 depth_sub 的路径分别换成 `/camera/color/image_raw` 和 `/camera/depth/image_rect_raw`。
 
 ## Trouble shooting
-- Problem #1, 2, 3 通过修改 *devcontainer.json* 解决。
+- Problem #1, 2, 3, 12 通过修改 *devcontainer.json* 解决。
 - Problem #7, 9 通过修改 ORB_SLAM2 源码解决。
 - Problem #6, 8, 10, 11 通过修改 *Dockerfile* 解决。
 ### Problem #1: Certificate verification failed: The certificate is NOT trusted.
