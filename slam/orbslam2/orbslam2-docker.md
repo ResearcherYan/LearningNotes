@@ -22,8 +22,10 @@
   - [Problem #9: undefined reference to symbol '_ZN5boost6system15system_categoryEv'](#problem-9-undefined-reference-to-symbol-_zn5boost6system15system_categoryev)
   - [Problem #10: Re-run cmake with a different source directory.](#problem-10-re-run-cmake-with-a-different-source-directory)
   - [Problem #11: [rospack] Error: package 'ORB_SLAM2' not found](#problem-11-rospack-error-package-orb_slam2-not-found)
+  - [Problem #12: Failed to connect to 127.0.0.1 port 12333: Connection refused](#problem-12-failed-to-connect-to-127001-port-12333-connection-refused)
+  - [Problem #13 standard_init_linux.go:228: exec user process caused: exec format error](#problem-13-standard_init_linuxgo228-exec-user-process-caused-exec-format-error)
   - [Warnings](#warnings)
-- [参考链接](#参考链接)
+- [核心参考链接](#核心参考链接)
 
 
 ## Image Building
@@ -124,7 +126,7 @@ cd ORB_SLAM2 && rm .git .gitignore
 - 报错描述：镜像构建过程中执行到 apt-get update 时报错。
 - 报错原因 & 解决办法：
   - 首先查的log文件的最底部的报错信息，就是 *XHR failed*。看到 [stackoverflow](https://stackoverflow.com/questions/70177216/visual-studio-code-error-while-fetching-extensions-xhr-failed) 上面有个回答说是因为 vscode 和 PC 设置的 proxy 冲突了。
-  - 随后就把log文件往上看了看，发现确实是因为网络问题，还有个报错信息就是 *Client network socket disconnected before secure TLS connection was established*，于是就知道应该是小飞机的问题，应该是容器没有接上主机的代理。通过一个 [github issue](https://github.com/microsoft/vscode-remote-release/issues/986) 找到了给容器设置代理的方法，即在 *devcontainer.json* 的 settings 里设置 `http.proxy`（`https.proxy` 也可以加上，但加上的话一定还要加一句 `"http.proxyStrictSSL": false`）。
+  - 随后就把log文件往上看了看，发现确实是因为网络问题，还有个报错信息就是 *Client network socket disconnected before secure TLS connection was established*，于是就知道应该是小飞机的问题，应该是镜像构建过程中没有接上主机的代理。通过一个 [github issue](https://github.com/microsoft/vscode-remote-release/issues/986) 找到了镜像构建过程中设置代理的方法，即在 *devcontainer.json* 的 settings 里设置 `http.proxy` 和 `https.proxy`（建议都设置成 `http://127.0.0.1:port`，不要用 https）。
 
 ### Problem #3: Pangolin X11: Failed to open X display
 - 报错描述：用 orbslam2 单目 demo 运行 TUM 数据集的时候报错。
@@ -181,6 +183,32 @@ cd ORB_SLAM2 && rm .git .gitignore
 - 报错原因：没有设置 ORB_SLAM2 ROS 的环境变量
 - 解决方法：参考[博客](https://www.cnblogs.com/1228073191Blog/p/10635691.html)。先 `source /root/catkin_ws/ORB_SLAM2/Examples/ROS/ORB_SLAM2/build/devel/setup.bash`，然后再执行上面的 rosrun 指令。（ROS 环境变量的设置都已经植入到 *Dockerfile* 里了，一启动 remote container 就配置好了）
 
+### Problem #12: Failed to connect to 127.0.0.1 port 12333: Connection refused
+- 报错描述：启动 orbslam2 docker 容器后运行 `git clone` 命令报错。
+- 排错过程：
+  - git
+    - `git config --global --get http.proxy && git config --global --get https.proxy` 输出的是 `http://127.0.0.1:12333` 和 `https://127.0.0.1:12333`。
+    - 点击 Reopen in Container 后，在镜像构建的终端信息中发现了这一句 *Start: Run in container: # Copy /home/yan/.gitconfig to /root/.gitconfig*，这就解释了为什么主机 proxy 环境变量全是 http（是通过 ~/.bashrc 设置的），而镜像的 git proxy 一个是 http，一个是 https，因为它是直接 copy 的主机的 .gitconfig 文件，而在主机上的 .gitconfig 文件里面，proxy 的设置就是一个 http，一个 https。把主机上的 .gitconfig 全改为 http 代理后，重新构建镜像之后，再用 `git config --global --get http.proxy && git config --global --get https.proxy` 查看发现果然都变成了 http 代理。
+    - `git config --global --unset http.proxy && git config --global --unset https.proxy` 取消 git proxy 代理后，发现 `git clone` 可以正常使用。说明 git 不走代理可以，走代理不行。
+  - apt
+    - `apt-get update` 正常链接到镜像源网站
+    - `env | grep -i proxy` 没有任何输出，说明容器没有设置任何代理的环境变量。可是明明在 *devcontainer.json* 文件的 *settings* 里设置了 proxy，为什么容器里的 proxy 环境变量还是没有被设置呢？
+    - `export http_proxy=http://127.0.0.1:12333 && apt-get update` 也会报 proxy 的错，说明 apt 没有走代理是好的，走代理就不行了。
+    - 参考 [github issue](https://github.com/microsoft/vscode-remote-release/issues/6464)，在 *devcontainer.json* 里设置 *containerEnv*。Rebuild 之后 `env | grep -i proxy`，发现容器的 proxy 环境变量设置成功。
+    - 综上几条可以发现，*devcontainer.json* 文件的 *settings* 应该跟 vscode 自己的 `/home/yan/.config/Code/User/settings.json` 配置文件有点像，也就说明在  *devcontainer.json* 文件的 *settings* 里面设置的 proxy 只会在 vscode 进行镜像构建的过程中生效，并不会延伸到容器里，只有通过设置 *containerEnv* 才能设置容器内的 proxy 环境变量。
+
+- 报错原因：从上面的 debug 过程可以发现，这个报错的根本原因还是容器无法通过 127.0.0.1:12333 连接到主机的代理。之前遇到的代理报错，都是在镜像构建过程中报的错（如 [Problem #1](#problem-1-certificate-verification-failed-the-certificate-is-not-trusted) 和 [Problem #2](#problem-2-client-network-socket-disconnected-before-secure-tls-connection-was-established-或-xhr-failed)），本质上是主机连接代理的问题，跟容器没关系，这次是容器无法连接主机的代理。
+- 解决方法：让容器和主机共享 network namespace
+    - 参考博客 [Connection refused? Docker networking and how it impacts your image](https://pythonspeed.com/articles/docker-connection-refused/)，发现原来 container 和 host 使用的是两个 network namespace，也就是说在 container 里面如果设置 proxy 为 127.0.0.1:12333，那么连接的是 container 自己的 127.0.0.1 接口，与主机的 127.0.0.1 接口完全无关。
+    - 参考 [stackoverflow](https://stackoverflow.com/questions/24319662/from-inside-of-a-docker-container-how-do-i-connect-to-the-localhost-of-the-mach) 和 [docker docs](https://docs.docker.com/network/host/)，通过在 *devcontainer.json* 的 runArgs 里加上 `"--network=host"`，可以让容器和主机共享同一个 network namespace，这样一来在 container 里面设置 proxy 为 127.0.0.1:12333 就可以直接连接上主机的代理了。
+
+### Problem #13 standard_init_linux.go:228: exec user process caused: exec format error
+- 报错描述：将自己电脑上的容器导出到树莓派上的时候报错。
+- 报错原因：树莓派是 ARM 架构，而自己的电脑是 x86_64 (也就是 AMD) 架构，不同硬件架构上构建的 docker 镜像一般是不互通的。
+- 解决方法
+  - 选择1：只把 docker 作为开发环境，即仅仅把它作为一个 "clean workspace" 来用。要部署到树莓派上的时候，软件库还是手动一个个去装。
+  - 选择2：在树莓派上也用 docker，用相同的 *Dockerfile* 再重新在树莓派上构建一个 docker 镜像。
+
 
 ### Warnings
   - 如果在 *devcontainer.json* 文件中没有指明 device 的文件位置的话，就会报下面的这些 warning（虽然写的是 error，但不影响程序运行）<br>
@@ -196,7 +224,7 @@ cd ORB_SLAM2 && rm .git .gitignore
   参考 [gitee](https://gitee.com/feisonzl/orbslam2_runin_docker/commit/93a6d266c4ddc2c067a3a6cd786f13e88cb10470) 上对原 devcontainer.json 的修改，可以通过指定 device 来解决大部分的 warning（除了第一句）。具体见 [devcontainer.json](devcontainer.json)。
 
 
-## 参考链接
+## 核心参考链接
 1. [ORB-SLAM2 官方 github](https://github.com/raulmur/ORB_SLAM2)
 2. [ORB-SLAM2 Docker 容器 (gitee)](https://gitee.com/wycan/orbslam2_runin_docker)
 3. [使用Realsense D435相机在ROS Kinetic中跑通ORB-SLAM2](https://blog.csdn.net/Carminljm/article/details/86353775)
