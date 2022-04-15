@@ -3,12 +3,14 @@
 
 1. general
    - [linux](general/linux.md)
+   - [linux-command](general/linux-command.md)
    - [nvidia & cuda](general/nvidia-cuda.md)
    - [conda & pip](general/conda-pip.md)
    - [VSCode配置C++/CMake (Linux)](general/vscode-c++-cmake.md)
    - [proxy](general/proxy.md)
+   - [raspberrypi](general/raspberrypi.md)
 2. docker
-   - [docker](docker/docker.md)
+   - [docker basics](docker/docker.md)
    - [dockerfile](docker/write-dockerfile.md)
 3. slam
    - [视觉SLAM十四讲 3rdparty library installation](slam/slambook2-3rdparty.md)
