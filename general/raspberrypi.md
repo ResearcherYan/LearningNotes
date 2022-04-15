@@ -15,7 +15,7 @@
 
 
 ## 现有硬件
-1. 树莓派 4B (8GB) + Argon one v2 树莓派外壳 + 5V 3A 充电头 + USB-TypeC 电源线
+1. 树莓派 4B (8GB) + Argon one Pi 4 V2 树莓派外壳 + 5V 3A 充电头 + USB-TypeC 电源线
 2. 三星 Pro Plus 128G SD 卡（读速度 160 MB/s，写速度 120 MB/s）+ SD Adapter（适配器是买卡的时候自带的）
 3. 路由器 + 网线
 4. 键鼠 + HDMI 显示器 + 公对公 HDMI 传输线（实验室服务器的配件，只能暂时用用）
@@ -32,6 +32,7 @@
 - 烧写镜像：将 Ubuntu Server 20.04 烧写到 SD 卡中。
 - 连线：将树莓派的网口连接到路由器的 LAN 口中的任意一个，连接键鼠、HDMI 显示器。（这里一定要连 HDMI 显示器，尝试了实验室的 3 个 VGA 显示器都不行）。
 - 安装桌面：开机，按照 [Install Ubuntu Desktop 20.04 LTS on Raspberry Pi 4](https://linuxhint.com/install-ubuntu-desktop-20-04-lts-on-raspberry-pi-4/) 的步骤安装 GNOME 3 桌面。
+- 参照 Argon one Pi 4 V2 说明书，安装 power button & fan control 的功能包：`curl http://download.argon40.com/argon1.sh | bash`，随后重启树莓派。
 
 ### 给树莓派设置静态 ip
 - 打开树莓派的终端，`cat /sys/class/net/wlan0/address` 查看无线网卡的 MAC 地址。
