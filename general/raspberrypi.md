@@ -39,6 +39,7 @@
 - 在浏览器中输入192.168.xxx.xxx（这个 ip 一般路由器上会写或者路由器说明书或官网上有），进入路由器管理页面。给上一步得到的 MAC 地址添加一个静态 IP。
 
 ### 使树莓派允许远程桌面控制
+- 安装 Vino VNC server（如果没有安装的话）：`sudo apt install vino`
 - 断开树莓派的有线网连接，转而连接路由器的 wifi（否则无法开启 Screen Sharing）
 - 在 Settings > Sharing 里开启 Screen Sharing，设置远程登录密码，Networks 选择路由器的 wifi。
 
