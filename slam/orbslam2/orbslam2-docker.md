@@ -23,7 +23,7 @@
   - [Problem #10: Re-run cmake with a different source directory.](#problem-10-re-run-cmake-with-a-different-source-directory)
   - [Problem #11: [rospack] Error: package 'ORB_SLAM2' not found](#problem-11-rospack-error-package-orb_slam2-not-found)
   - [Problem #12: Failed to connect to 127.0.0.1 port 12333: Connection refused](#problem-12-failed-to-connect-to-127001-port-12333-connection-refused)
-  - [Problem #13 standard_init_linux.go:228: exec user process caused: exec format error](#problem-13-standard_init_linuxgo228-exec-user-process-caused-exec-format-error)
+  - [Problem #13: standard_init_linux.go:228: exec user process caused: exec format error](#problem-13-standard_init_linuxgo228-exec-user-process-caused-exec-format-error)
   - [Warnings](#warnings)
 - [核心参考链接](#核心参考链接)
 
@@ -204,12 +204,12 @@ cd ORB_SLAM2 && rm .git .gitignore
     - 参考博客 [Connection refused? Docker networking and how it impacts your image](https://pythonspeed.com/articles/docker-connection-refused/)，发现原来 container 和 host 使用的是两个 network namespace，也就是说在 container 里面如果设置 proxy 为 127.0.0.1:12333，那么连接的是 container 自己的 127.0.0.1 接口，与主机的 127.0.0.1 接口完全无关。
     - 参考 [stackoverflow](https://stackoverflow.com/questions/24319662/from-inside-of-a-docker-container-how-do-i-connect-to-the-localhost-of-the-mach) 和 [docker docs](https://docs.docker.com/network/host/)，通过在 *devcontainer.json* 的 runArgs 里加上 `"--network=host"`，可以让容器和主机共享同一个 network namespace，这样一来在 container 里面设置 proxy 为 127.0.0.1:12333 就可以直接连接上主机的代理了。
 
-### Problem #13 standard_init_linux.go:228: exec user process caused: exec format error
+### Problem #13: standard_init_linux.go:228: exec user process caused: exec format error
 - 报错描述：将自己电脑上的容器导出到树莓派上的时候报错。
 - 报错原因：树莓派是 ARM 架构，而自己的电脑是 x86_64 (也就是 AMD) 架构，不同硬件架构上构建的 docker 镜像一般是不互通的。
 - 解决方法
   - 选择1：只把 docker 作为开发环境，即仅仅把它作为一个 "clean workspace" 来用。要部署到树莓派上的时候，软件库还是手动一个个去装。
-  - 选择2：在树莓派上也用 docker，用相同的 *Dockerfile* 再重新在树莓派上构建一个 docker 镜像。
+  - 选择2：在树莓派上也用 docker，用类似的 *Dockerfile* 再重新在树莓派上构建一个 docker 镜像（主要不同的地方在于 ROS 版本，主机上的 docker 镜像是 ubuntu 18，而树莓派上装的是 ubuntu 20）。
 
 
 ### Warnings
