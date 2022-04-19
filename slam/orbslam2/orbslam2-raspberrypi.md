@@ -5,10 +5,18 @@
 - [试错 1](#试错-1)
   - [安装 orbslam2 的依赖](#安装-orbslam2-的依赖)
   - [安装 RealSense SDK](#安装-realsense-sdk)
-  - [安装 ROS](#安装-ros)
-  - [安装 RealSense ROS Package](#安装-realsense-ros-package)
 - [试错 2](#试错-2)
-  - [先安装好所有的依赖包](#先安装好所有的依赖包)
+  - [安装全部的依赖](#安装全部的依赖)
+    - [安装 Pangolin 的依赖](#安装-pangolin-的依赖)
+    - [安装 opencv3 的依赖](#安装-opencv3-的依赖)
+    - [安装 RealSense SDK](#安装-realsense-sdk-1)
+    - [安装 ROS](#安装-ros)
+    - [安装 rslidar_sdk 的依赖](#安装-rslidar_sdk-的依赖)
+    - [安装 ubuntu-desktop<br>](#安装-ubuntu-desktop)
+  - [完成剩余的安装步骤](#完成剩余的安装步骤)
+    - [安装 RealSense ROS Package](#安装-realsense-ros-package)
+    - [完成 orbslam2 的安装](#完成-orbslam2-的安装)
+    - [完成 rslidar_sdk 的安装](#完成-rslidar_sdk-的安装)
 - [参考链接](#参考链接)
 
 ## 试错 1
@@ -163,21 +171,24 @@
   尝试安装 18 的系统，发现 Ubuntu 18 的树莓派系统都没法进登录界面。<br>
   尝试 21.10（本身就带桌面），发现安装之后经常卡死。<br>
 
-### 安装 ROS
-
-### 安装 RealSense ROS Package
+---
 
 ## 试错 2
 还是安装 Ubuntu 20.04 Server，但不马上装桌面，先把所有要用的依赖库装好（还要把 RealSense SDK 编译完，因为从源代码安装 RealSense SDK 可能会涉及到内核的一些东西）之后再装桌面。
-### 先安装好所有的依赖包
-- 安装 Pangolin 的依赖
+### 安装全部的依赖
+先安装好所有的依赖，是为了看看依赖包之间有无冲突。（尤其是与 gnome 桌面的依赖包有无冲突）
+
+#### 安装 Pangolin 的依赖
   ```bash
   sudo apt-get install cmake gcc g++ libgl1-mesa-dev libglew-dev libpython2.7-dev pkg-config libegl1-mesa-dev libwayland-dev libxkbcommon-dev wayland-protocols ffmpeg libavcodec-dev libavutil-dev libavformat-dev libswscale-dev libavdevice-dev libdc1394-22-dev libraw1394-dev libjpeg-dev libtiff5-dev libopenexr-dev
   ```
-- 安装 opencv3 的依赖
+
+#### 安装 opencv3 的依赖
   ```bash
   sudo apt-get install build-essential cmake git libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev libswscale-dev libtbb2 libtbb-dev libjpeg-dev libpng-dev libtiff-dev libdc1394-22-dev
   ```
+
+#### 安装 RealSense SDK
 - 安装 RealSense SDK 的依赖
   - Download/Clone librealsense github repository<br>
     ```bash
@@ -206,44 +217,177 @@
   && cmake ../ -DCMAKE_BUILD_TYPE=Release -DBUILD_EXAMPLES=true \
   && sudo make uninstall && make clean && make -j$(nproc) && sudo make install
   ```
-- 安装 ROS
-  - Configure your Ubuntu repositories<br>
-    首先检查一下 Ubuntu 软件仓库设置有没有允许来自 "restricted", "universe", "multiverse" 这三种仓库的软件安装：`sudo vim /etc/apt/sources.list`，装好 Ubuntu 20.04 Server 之后应该是默认允许这三个仓库的软件安装。
-  - Setup your sources.list（用中科大的源）<br>
-    ```bash
-    sudo sh -c '. /etc/lsb-release && echo "deb http://mirrors.ustc.edu.cn/ros/ubuntu/ `lsb_release -cs` main" > /etc/apt/sources.list.d/ros-latest.list'
-    ```
-  - Set up your keys<br>
-    ```bash
-    sudo apt install curl \
-    && curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | sudo apt-key add -
-    ```
-  - Installation
-    ```bash
-    sudo apt update && sudo apt install ros-noetic-desktop-full
-    ```
-    安装 ros-noetic-desktop-full 之后发现它的依赖包括很多 gnome 的东西，心一悬，感觉后面装桌面的时候可能会有依赖冲突。<br>
-    在下载完成后大概安装到 70% 80% 的时候，ssh 突然断开，并且无法重连上，然后在路由器管理页面可以看到树莓派的 wifi 也断开了。估计是 gnome 搞的鬼。<br>
-    等了大概 30 min 后，手动重启树莓派，在 hdmi 显示器端看到
-  - Environment setup
-    ```bash
-    echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc \
-    && source ~/.bashrc
-    ```
-  - Install Dependencies for building packages
-    ```bash
-    sudo apt install python3-rosdep python3-rosinstall python3-rosinstall-generator python3-wstool build-essential
-    ```
-  - Test your installation（查看 ROS 的环境变量）
-    ```bash
-    printenv | grep ROS
-    ```
 
-- 安装 ubuntu-desktop
+#### 安装 ROS
+- Configure your Ubuntu repositories<br>
+  首先检查一下 Ubuntu 软件仓库设置有没有允许来自 "restricted", "universe", "multiverse" 这三种仓库的软件安装：`sudo vim /etc/apt/sources.list`，装好 Ubuntu 20.04 Server 之后应该是默认允许这三个仓库的软件安装。
+- Setup your sources.list（用中科大的源）<br>
+  ```bash
+  sudo sh -c '. /etc/lsb-release && echo "deb http://mirrors.ustc.edu.cn/ros/ubuntu/ `lsb_release -cs` main" > /etc/apt/sources.list.d/ros-latest.list'
+  ```
+- Set up your keys<br>
+  ```bash
+  sudo apt install curl \
+  && curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | sudo apt-key add -
+  ```
+- Installation
+  ```bash
+  sudo apt update && sudo apt install ros-noetic-desktop-full
+  ```
+  安装 ros-noetic-desktop-full 之后发现它的依赖包括很多 gnome 的东西，心一悬，感觉后面装桌面的时候可能会有依赖冲突。<br>
+  在下载完成后大概安装到 70% 80% 的时候，ssh 突然断开，并且无法重连上，然后在路由器管理页面可以看到树莓派的 wifi 也断开了。估计是 gnome 搞的鬼。<br>
+  等了大概 30 min 后，手动重启树莓派，在 hdmi 显示器端看到果然自动给装了 gnome 桌面，只不过是个简易版的，什么应用都没有，也没有 screen sharing。
+- Environment setup
+  ```bash
+  echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc \
+  && source ~/.bashrc
+  ```
+- Install Dependencies for building packages
+  ```bash
+  sudo apt install python3-rosdep python3-rosinstall python3-rosinstall-generator python3-wstool build-essential
+  ```
+- Test your installation（查看 ROS 的环境变量）
+  ```bash
+  printenv | grep ROS
+  ```
 
-- 测试 realsense-viewer
+#### 安装 rslidar_sdk 的依赖
+- git clone<br>
+  ```bash
+  mkdir -p /home/ubuntu/rslidar && cd /home/ubuntu/rslidar \
+  && git clone https://github.com/RoboSense-LiDAR/rslidar_sdk.git \
+  && cd rslidar_sdk \
+  && git submodule init \
+  && git submodule update
+  ```
+- 安装除 ROS 以外的依赖<br>
+  ```bash
+  sudo apt-get install libyaml-cpp-dev libpcap-dev libprotobuf-dev protobuf-compiler
+  ```
 
-- 安装速腾雷达的依赖
+#### 安装 ubuntu-desktop<br>
+前面在安装 ROS 的时候已经自动安装了一个简易版的 gnome 桌面，这里为了启动 screen sharing，决定还是装一个完整版的 gnome 桌面。<br>
+```bash
+sudo apt install ubuntu-desktop
+```
+安装完桌面后重启树莓派，并测试 realsense-viewer：在终端输入 `realsense-viewer`，看 SDK 是否正常运行。
+
+### 完成剩余的安装步骤
+#### 安装 RealSense ROS Package
+这里参考 [Intel® RealSense™ D400 cameras with Raspberry Pi](https://github.com/IntelRealSense/librealsense/blob/master/doc/RaspberryPi3.md)，在 Perrequisites 这一节，只执行 kernel patches instructions 前面的步骤，因此应该是没有对系统的内核进行修改的。
+- Create a catkin workspace
+  ```bash
+  mkdir -p ~/catkin_ws/src \
+  && cd ~/catkin_ws/src/
+  ```
+- git clone
+  ```bash
+  git clone https://github.com/IntelRealSense/realsense-ros.git \
+  && cd realsense-ros/ \
+  && git checkout `git tag | sort -V | grep -P "^2.\d+\.\d+" | tail -1` \
+  && cd ..
+  ```
+- Install ros package *ddynamic_reconfigure*
+  ```bash
+  sudo apt install ros-noetic-ddynamic-reconfigure
+  ```
+- Build
+  ```bash
+  catkin_init_workspace
+  cd ..
+  catkin_make clean
+  catkin_make -DCATKIN_ENABLE_TESTING=False -DCMAKE_BUILD_TYPE=Release
+  catkin_make install
+  ```
+- Setup environment variables
+  ```bash
+  echo "source ~/catkin_ws/devel/setup.bash" >> ~/.bashrc \
+  && source ~/.bashrc
+  ```
+
+#### 完成 orbslam2 的安装
+- 准备好源代码文件
+  - 创建目录
+    ```bash
+    mkdir -p /home/ubuntu/orbslam2/orbslam2-dependencies/
+    ```
+  - 复制源代码<br>
+    把自己电脑上的 eigen pangolin opencv 的源代码传输到文件夹 */home/ubuntu/orbslam2/orbslam2-dependencies/*，把 ORB_SLAM2 的源代码传输到文件夹 */home/ubuntu/orbslam2/*。
+  - 修改 opencv 源代码<br>
+    参考[博客](https://blog.csdn.net/guo_lei_lamant/article/details/81568346#commentBox)，在 opencv-3.2.0/modules/videoio/src/cap_ffmpeg_impl.hpp 最顶端加入下面 3 行代码
+    ```hpp
+    #define AV_CODEC_FLAG_GLOBAL_HEADER (1 << 22)
+    #define CODEC_FLAG_GLOBAL_HEADER AV_CODEC_FLAG_GLOBAL_HEADER
+    #define AVFMT_RAWPICTURE 0x0020
+    ```
+- 安装 eigen 3.3.5
+  ```bash
+  cd /home/ubuntu/orbslam2/orbslam2-dependencies/eigen-3.3.5 && mkdir build && cd build && cmake .. && make -j$(nproc) && sudo make install
+  ```
+- 安装 Pangolin
+  ```bash
+  cd /home/ubuntu/orbslam2/orbslam2-dependencies/Pangolin && mkdir build && cd build && cmake .. && cmake --build . && sudo make install
+  ```
+- 安装 opencv 3.2<br>
+  ```bash
+  cd /home/ubuntu/orbslam2/orbslam2-dependencies/opencv-3.2.0 && mkdir build && cd build && cmake -D CMAKE_BUILD_TYPE=Release BUILD_DOCS BUILD_EXAMPLES .. && make -j$(nproc) && sudo make install
+  ```
+  报错
+  ```
+  [ 24%] Generating precomp.hpp.gch/opencv_viz_Release.gch
+  In file included from /usr/include/c++/9/ext/string_conversions.h:41,
+                  from /usr/include/c++/9/bits/basic_string.h:6496,
+                  from /usr/include/c++/9/string:55,
+                  from /usr/include/c++/9/stdexcept:39,
+                  from /usr/include/c++/9/array:39,
+                  from /usr/include/c++/9/tuple:39,
+                  from /usr/include/c++/9/bits/stl_map.h:63,
+                  from /usr/include/c++/9/map:61,
+                  from /home/ubuntu/orbslam2/orbslam2-dependencies/opencv-3.2.0/build/modules/viz/precomp.hpp:49:
+  /usr/include/c++/9/cstdlib:75:15: fatal error: stdlib.h: No such file or directory
+    75 | #include_next <stdlib.h>
+        |               ^~~~~~~~~~
+  compilation terminated.
+  make[2]: *** [modules/viz/CMakeFiles/pch_Generate_opencv_viz.dir/build.make:64: modules/viz/precomp.hpp.gch/opencv_viz_Release.gch] Error 1
+  make[1]: *** [CMakeFiles/Makefile2:3419: modules/viz/CMakeFiles/pch_Generate_opencv_viz.dir/all] Error 2
+  make[1]: *** Waiting for unfinished jobs....
+  ```
+  参考 [stackoverflow](https://stackoverflow.com/questions/40262928/error-compiling-opencv-fatal-error-stdlib-h-no-such-file-or-directory)，在编译时加入 `-DENABLE_PRECOMPILED_HEADERS=OFF`，解决。
+  ```bash
+  cd /home/ubuntu/orbslam2/orbslam2-dependencies/opencv-3.2.0 && mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_PRECOMPILED_HEADERS=OFF BUILD_DOCS BUILD_EXAMPLES .. && make -j$(nproc) && sudo make install
+  ```
+- 安装 orbslam2<br>
+  - Build ORB_SLAM2 library and examples
+    ```bash
+    cd /home/ubuntu/orbslam2/ORB_SLAM2 \
+    && chmod +x build.sh \
+    && ./build.sh
+    ```
+  - Build ROS nodes
+    ```bash
+    echo "export ROS_PACKAGE_PATH=${ROS_PACKAGE_PATH}:/home/ubuntu/orbslam2/ORB_SLAM2/Examples/ROS" >> ~/.bashrc \
+    && chmod +x build_ros.sh \
+    && ./build_ros.sh
+    ```
+- 测试 ORB_SLAM2 的 RGBD demo（使用 realsense D455）<br>
+  打开三个终端
+  - `roscore`
+  - `roslaunch realsense2_camera rs_rgbd.launch`
+  - `rosrun ORB_SLAM2 RGBD /root/catkin_ws/ORB_SLAM2/Vocabulary/ORBvoc.txt /root/catkin_ws/ORB_SLAM2/Examples/ROS/ORB_SLAM2/AsusD455.yaml`
+
+#### 完成 rslidar_sdk 的安装
+- 打开工程内的 *CMakeLists.txt* 文件，将文件顶部的 `set(COMPILE_METHOD ORIGINAL)` 改为 `set(COMPILE_METHOD CATKIN)`。
+- 将 rslidar_sdk 工程目录下的 *package_ros1.xml* 文件复制到 *package.xml*。
+- 将 rslidar_sdk 工程放入 *~/catkin/src* 文件夹内。
+- 返回工作空间目录，用 catkin 编译 rslidar_sdk 源代码。
+  ```bash
+  catkin_make \
+  && source devel/setup.bash \
+  ```
+- 运行 rslidar_sdk
+  ```bash
+  roslaunch rslidar_sdk start.launch
+  ```
 
 ## 参考链接
 1. 本仓库下的 [Dockerfile](.devcontainer/Dockerfile)
@@ -251,3 +395,4 @@
 3. [ReanSense SDK Installation -- Built from Source](https://github.com/IntelRealSense/librealsense/blob/development/doc/installation.md)
 4. [ROS Noetic Installation](http://wiki.ros.org/noetic/Installation/Ubuntu)
 5. [RealSense ROS Package Installation](https://github.com/IntelRealSense/realsense-ros)
+6. [rslidar_sdk 安装](https://github.com/RoboSense-LiDAR/rslidar_sdk/blob/main/README_CN.md#rslidar_sdk)
