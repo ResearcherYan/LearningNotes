@@ -1,4 +1,4 @@
-> 本文主要介绍如何在树莓派上部署 orbslam2 环境
+> 本文主要介绍如何在树莓派上部署 orbslam2 环境（还包括 realsense 相机和速腾激光雷达的 sdk）
 
 > CONTENT
 
@@ -478,13 +478,14 @@ sudo apt install ubuntu-desktop
   - `rosrun ORB_SLAM2 RGBD /home/ubuntu/orbslam2/ORB_SLAM2/Vocabulary/ORBvoc.txt /home/ubuntu/orbslam2/ORB_SLAM2/Examples/ROS/ORB_SLAM2/AsusD455.yaml`
 
 #### 完成 rslidar_sdk 的安装
-- 打开工程内的 *CMakeLists.txt* 文件，将文件顶部的 `set(COMPILE_METHOD ORIGINAL)` 改为 `set(COMPILE_METHOD CATKIN)`。
-- 将 rslidar_sdk 工程目录下的 *package_ros1.xml* 文件复制到 *package.xml*。
-- 将 rslidar_sdk 工程放入 *~/catkin/src* 文件夹内。
-- 返回工作空间目录，用 catkin 编译 rslidar_sdk 源代码。
+- 打开工程内的 *CMakeLists.txt* 文件，将文件顶部的 `set(COMPILE_METHOD ORIGINAL)` 改为 `set(COMPILE_METHOD CATKIN)`。（可能已经改过来了）
+- 将 rslidar_sdk 工程目录下的 *package_ros1.xml* 文件复制一份，并重命名为 *package.xml*。
+- 将 rslidar_sdk 工程放入 *~/catkin_ws/src* 文件夹内。
+- 返回工作空间目录 *~/catkin_ws*，用 catkin 编译 rslidar_sdk 源代码。
   ```bash
-  catkin_make \
-  && source devel/setup.bash \
+  cd ~/catkin_ws \
+  && catkin_make \
+  && source devel/setup.bash
   ```
 - 运行 rslidar_sdk
   ```bash
