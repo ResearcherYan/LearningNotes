@@ -15,7 +15,7 @@
     - [安装 ubuntu-desktop<br>](#安装-ubuntu-desktop)
   - [完成剩余的安装步骤](#完成剩余的安装步骤)
     - [安装 RealSense ROS Package](#安装-realsense-ros-package)
-    - [完成 orbslam2 的安装](#完成-orbslam2-的安装)
+    - [安装 orbslam2](#安装-orbslam2)
     - [完成 rslidar_sdk 的安装](#完成-rslidar_sdk-的安装)
 - [参考链接](#参考链接)
 
@@ -71,7 +71,7 @@
 
 ### 安装 RealSense SDK
 参考 [Intel® RealSense™ D400 cameras with Raspberry Pi](https://github.com/IntelRealSense/librealsense/blob/master/doc/RaspberryPi3.md)，Intel 的关于树莓派的官方教程给的是 Ubuntu Mate 的例子，因为树莓派是 ARM 架构，只能用 Build from Source 的方法安装。
-- Make Ubuntu Up-to-date（后面发现其实不要执行这一步为好）
+- Make Ubuntu Up-to-date（后面发现其实最好不要执行这一步，upgrade 之后内核会很新，很容易引发一些依赖冲突）
   ```bash
   sudo apt-get update && sudo apt-get upgrade
   ```
@@ -174,7 +174,8 @@
 ---
 
 ## 试错 2
-还是安装 Ubuntu 20.04 Server，但不马上装桌面，先把所有要用的依赖库装好（还要把 RealSense SDK 编译完，因为从源代码安装 RealSense SDK 可能会涉及到内核的一些东西）之后再装桌面。
+兜兜转转还是决定安装 Ubuntu 20.04 Server，但不马上装桌面，先把所有要用的依赖库装好（还要把 RealSense SDK 编译完，因为从源代码安装 RealSense SDK 可能会涉及到内核的一些东西）之后再装桌面。
+
 ### 安装全部的依赖
 先安装好所有的依赖，是为了看看依赖包之间有无冲突。（尤其是与 gnome 桌面的依赖包有无冲突）
 
@@ -234,9 +235,9 @@
   ```bash
   sudo apt update && sudo apt install ros-noetic-desktop-full
   ```
-  安装 ros-noetic-desktop-full 之后发现它的依赖包括很多 gnome 的东西，心一悬，感觉后面装桌面的时候可能会有依赖冲突。<br>
-  在下载完成后大概安装到 70% 80% 的时候，ssh 突然断开，并且无法重连上，然后在路由器管理页面可以看到树莓派的 wifi 也断开了。估计是 gnome 搞的鬼。<br>
-  等了大概 30 min 后，手动重启树莓派，在 hdmi 显示器端看到果然自动给装了 gnome 桌面，只不过是个简易版的，什么应用都没有，也没有 screen sharing。
+  安装 ros-noetic-desktop-full 之后发现它的依赖包括很多 gnome 的东西，心一悬，感觉后面装桌面的时候可能会有依赖冲突（到后来发现其实并没有冲突）。<br>
+  在下载完成后大概安装到 70% 80% 的时候，ssh 突然断开，并且无法重连上，然后在路由器管理页面可以看到树莓派的 wifi 也断开了。估计是刚刚带桌面的 ROS 的依赖包 gnome 搞的鬼。<br>
+  等了大概 30 min 后（确保后面百分之 20% 30% 安装完成），手动重启树莓派，在 hdmi 显示器端看到果然自动给装了 gnome 桌面，只不过是个简易版的，什么应用都没有，也没有 screen sharing。
 - Environment setup
   ```bash
   echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc \
@@ -270,7 +271,7 @@
 ```bash
 sudo apt install ubuntu-desktop
 ```
-安装完桌面后重启树莓派，并测试 realsense-viewer：在终端输入 `realsense-viewer`，看 SDK 是否正常运行。
+安装完桌面后重启树莓派，并测试 realsense-viewer：在终端输入 `realsense-viewer`，SDK 正常运行。
 
 ### 完成剩余的安装步骤
 #### 安装 RealSense ROS Package
@@ -305,7 +306,7 @@ sudo apt install ubuntu-desktop
   && source ~/.bashrc
   ```
 
-#### 完成 orbslam2 的安装
+#### 安装 orbslam2
 - 准备好源代码文件
   - 创建目录
     ```bash
@@ -332,48 +333,149 @@ sudo apt install ubuntu-desktop
   ```bash
   cd /home/ubuntu/orbslam2/orbslam2-dependencies/opencv-3.2.0 && mkdir build && cd build && cmake -D CMAKE_BUILD_TYPE=Release BUILD_DOCS BUILD_EXAMPLES .. && make -j$(nproc) && sudo make install
   ```
-  报错
-  ```
-  [ 24%] Generating precomp.hpp.gch/opencv_viz_Release.gch
-  In file included from /usr/include/c++/9/ext/string_conversions.h:41,
-                  from /usr/include/c++/9/bits/basic_string.h:6496,
-                  from /usr/include/c++/9/string:55,
-                  from /usr/include/c++/9/stdexcept:39,
-                  from /usr/include/c++/9/array:39,
-                  from /usr/include/c++/9/tuple:39,
-                  from /usr/include/c++/9/bits/stl_map.h:63,
-                  from /usr/include/c++/9/map:61,
-                  from /home/ubuntu/orbslam2/orbslam2-dependencies/opencv-3.2.0/build/modules/viz/precomp.hpp:49:
-  /usr/include/c++/9/cstdlib:75:15: fatal error: stdlib.h: No such file or directory
-    75 | #include_next <stdlib.h>
-        |               ^~~~~~~~~~
-  compilation terminated.
-  make[2]: *** [modules/viz/CMakeFiles/pch_Generate_opencv_viz.dir/build.make:64: modules/viz/precomp.hpp.gch/opencv_viz_Release.gch] Error 1
-  make[1]: *** [CMakeFiles/Makefile2:3419: modules/viz/CMakeFiles/pch_Generate_opencv_viz.dir/all] Error 2
-  make[1]: *** Waiting for unfinished jobs....
-  ```
-  参考 [stackoverflow](https://stackoverflow.com/questions/40262928/error-compiling-opencv-fatal-error-stdlib-h-no-such-file-or-directory)，在编译时加入 `-DENABLE_PRECOMPILED_HEADERS=OFF`，解决。
-  ```bash
-  cd /home/ubuntu/orbslam2/orbslam2-dependencies/opencv-3.2.0 && mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_PRECOMPILED_HEADERS=OFF BUILD_DOCS BUILD_EXAMPLES .. && make -j$(nproc) && sudo make install
-  ```
-- 安装 orbslam2<br>
+  - 报错 1
+    ```
+    [ 24%] Generating precomp.hpp.gch/opencv_viz_Release.gch
+    In file included from /usr/include/c++/9/ext/string_conversions.h:41,
+                    from /usr/include/c++/9/bits/basic_string.h:6496,
+                    from /usr/include/c++/9/string:55,
+                    from /usr/include/c++/9/stdexcept:39,
+                    from /usr/include/c++/9/array:39,
+                    from /usr/include/c++/9/tuple:39,
+                    from /usr/include/c++/9/bits/stl_map.h:63,
+                    from /usr/include/c++/9/map:61,
+                    from /home/ubuntu/orbslam2/orbslam2-dependencies/opencv-3.2.0/build/modules/viz/precomp.hpp:49:
+    /usr/include/c++/9/cstdlib:75:15: fatal error: stdlib.h: No such file or directory
+      75 | #include_next <stdlib.h>
+          |               ^~~~~~~~~~
+    compilation terminated.
+    make[2]: *** [modules/viz/CMakeFiles/pch_Generate_opencv_viz.dir/build.make:64: modules/viz/precomp.hpp.gch/opencv_viz_Release.gch] Error 1
+    make[1]: *** [CMakeFiles/Makefile2:3419: modules/viz/CMakeFiles/pch_Generate_opencv_viz.dir/all] Error 2
+    make[1]: *** Waiting for unfinished jobs....
+    ```
+    参考 [stackoverflow](https://stackoverflow.com/questions/40262928/error-compiling-opencv-fatal-error-stdlib-h-no-such-file-or-directory)，在编译时加入 `-DENABLE_PRECOMPILED_HEADERS=OFF`，解决。
+    ```bash
+    cd /home/ubuntu/orbslam2/orbslam2-dependencies/opencv-3.2.0 && mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_PRECOMPILED_HEADERS=OFF BUILD_DOCS BUILD_EXAMPLES .. && make -j$(nproc) && sudo make install
+    ```
+  - 报错 2
+    ```bash
+    [100%] Built target opencv_test_calib3d
+    /opencv-3.2.0/modules/python/src2/cv2.cpp:730:34: error: invalid conversion from 'const char*' to 'char*' [-fpermissive]
+    ```
+    参考 [stackoverflow](https://stackoverflow.com/questions/57289402/opencv-error-while-building-on-raspberry-pi)，修改 */opencv-3.2.0/modules/python/src2/cv2.cpp*，把 `char* str = PyString_AsString(obj);` 改为 `const char* str = PyString_AsString(obj);`。重新编译，成功。
+
+- Build orbslam2
   - Build ORB_SLAM2 library and examples
     ```bash
     cd /home/ubuntu/orbslam2/ORB_SLAM2 \
     && chmod +x build.sh \
     && ./build.sh
     ```
+    报错
+    ```bash
+    In file included from /usr/include/c++/9/map:61,
+                    from /home/ubuntu/orbslam2/ORB_SLAM2/Thirdparty/DBoW2/DBoW2/BowVector.h:14,
+                    from /home/ubuntu/orbslam2/ORB_SLAM2/include/Frame.h:27,
+                    from /home/ubuntu/orbslam2/ORB_SLAM2/include/MapPoint.h:25,
+                    from /home/ubuntu/orbslam2/ORB_SLAM2/include/KeyFrame.h:24,
+                    from /home/ubuntu/orbslam2/ORB_SLAM2/include/LoopClosing.h:24,
+                    from /home/ubuntu/orbslam2/ORB_SLAM2/src/LoopClosing.cc:21:
+    /usr/include/c++/9/bits/stl_map.h: In instantiation of ‘class std::map<ORB_SLAM2::KeyFrame*, g2o::Sim3, std::less<ORB_SLAM2::KeyFrame*>, Eigen::aligned_allocator<std::pair<const ORB_SLAM2::KeyFrame*, g2o::Sim3> > >’:
+    /home/ubuntu/orbslam2/ORB_SLAM2/src/LoopClosing.cc:438:21:   required from here
+    /usr/include/c++/9/bits/stl_map.h:122:71: error: static assertion failed: std::map must have the same value_type as its allocator
+      122 |       static_assert(is_same<typename _Alloc::value_type, value_type>::value,
+          |                                                                       ^~~~~
+    ```
+    参考[博客](https://blog.csdn.net/lixujie666/article/details/90023059)，修改文件 */home/ubuntu/orbslam2/ORB_SLAM2/include/LoopClosing.h*。
+    ```h
+    // 修改前的代码
+    typedef map<KeyFrame*,g2o::Sim3,std::less<KeyFrame*>,
+            Eigen::aligned_allocator<std::pair<const KeyFrame*, g2o::Sim3> > > KeyFrameAndPose;
+    // 修改后的代码
+    typedef map<KeyFrame*,g2o::Sim3,std::less<KeyFrame*>,
+            Eigen::aligned_allocator<std::pair<KeyFrame *const, g2o::Sim3> > > KeyFrameAndPose;
+    ```
+
   - Build ROS nodes
     ```bash
-    echo "export ROS_PACKAGE_PATH=${ROS_PACKAGE_PATH}:/home/ubuntu/orbslam2/ORB_SLAM2/Examples/ROS" >> ~/.bashrc \
+    cd /home/ubuntu/orbslam2/ORB_SLAM2 \
+    && echo "export ROS_PACKAGE_PATH=${ROS_PACKAGE_PATH}:/home/ubuntu/orbslam2/ORB_SLAM2/Examples/ROS" >> ~/.bashrc \
+    && source ~/.bashrc \
     && chmod +x build_ros.sh \
     && ./build_ros.sh
     ```
+    - 报错 1
+      ```bash
+      [rosbuild] Building package ORB_SLAM2
+      Failed to invoke /opt/ros/noetic/bin/rospack deps-manifests ORB_SLAM2
+      [rospack] Error: the rosdep view is empty: call 'sudo rosdep init' and 'rosdep update'
+
+
+      CMake Error at /opt/ros/noetic/share/ros/core/rosbuild/public.cmake:129 (message):
+        
+
+        Failed to invoke rospack to get compile flags for package 'ORB_SLAM2'.
+        Look above for errors from rospack itself.  Aborting.  Please fix the
+        broken dependency!
+
+      Call Stack (most recent call first):
+        /opt/ros/noetic/share/ros/core/rosbuild/public.cmake:207 (rosbuild_invoke_rospack)
+        CMakeLists.txt:4 (rosbuild_init)
+
+
+      -- Configuring incomplete, errors occurred!
+      See also "/home/ubuntu/orbslam2/ORB_SLAM2/Examples/ROS/ORB_SLAM2/build/CMakeFiles/CMakeOutput.log".
+      make: *** No targets specified and no makefile found.  Stop.
+      ```
+      根据提示，应该是装 ros 的时候没有 rosdep init。
+      ```bash
+      sudo rosdep init
+      rosdep update
+      ```
+    - 报错 2<br>
+      执行 `rosdep update` 的时候老是报错 read time out 的错误。<br>
+      尝试 [博客 1](https://blog.csdn.net/qq_38649880/article/details/87903654) 里的做法，把 `DOWNLOAD_TIMEOUT` 调大一点，从 15 调到了 60，还是会报同样的错。<br>
+      尝试 [博客 2](https://blog.csdn.net/weixin_41010198/article/details/109495305) 的做法，先 `apt update` 再 `sudo rosdep init` 和 `rosdep update`，也是一样报错。<br>
+      观察到每次在哪一步 read time out 其实是有随机性的，所以也不是说某个网站就一定无法链接上，决定碰运气多试几次，再继续尝试两三次后终于全部链接上，成功。<br>
+      然后重新 build ros node
+      ```bash
+      cd /home/ubuntu/orbslam2/ORB_SLAM2 \
+      && chmod +x build_ros.sh \
+      && ./build_ros.sh
+      ```
+    - 报错 3
+      ```bash
+      /usr/bin/ld: /usr/lib/aarch64-linux-gnu/libopencv_core.so.4.2.0: error adding symbols: DSO missing from command line
+      ```
+      看到 [ORB_SLAM3 Github Issue](https://github.com/UZ-SLAMLab/ORB_SLAM3/issues/279) 里有人也遇到了这个问题，是因为装 ROS 的时候没有从源代码安装，所以没有指定 ROS 使用的 opencv 的版本，默认安装的时候 ROS 用的是 opencv 4.2，而 ORB_SLAM2 的 *CMakeLists.txt* 里面写的是找 opencv 3，因此需要修改 *CMakeLists.txt* 来用 opencv 4.2 编译。<br>
+      注意 *ORB_SLAM2* 源代码里面一共有**四个** *CMakeLists.txt*，分别是<br>
+      *ORB_SLAM2/CMakeLists.txt*<br>
+      *ORB_SLAM2/Examples/ROS/ORB_SLAM2/CMakeLists.txt*<br>
+      *ORB_SLAM2/Thirdparty/DBoW2/CMakeLists.txt*<br>
+      *ORB_SLAM2/Thirdparty/g2o/CMakeLists.txt<br>
+      其中前三个是要用到 opencv 的，把这三个文件里的 `find_package(OpenCV 3.0 QUIET)` 改为 `find_package(OpenCV 4 QUIET)`。<br>
+      前面执行 build.sh 的时候可能也到了 opencv，因此先重新执行一下 build.sh
+      ```bash
+      cd /home/ubuntu/orbslam2/ORB_SLAM2 \
+      && chmod +x build.sh \
+      && ./build.sh
+      ```
+    - 报错 4<br>
+      因为编译时 opencv 版本从 3 变成了 4，在重新 build 的时候报了新的错误
+      ```bash
+      /home/ubuntu/orbslam2/ORB_SLAM2/Examples/Monocular/mono_kitti.cc:68:48: error: ‘CV_LOAD_IMAGE_UNCHANGED’ was not declared in this scope
+        68 |         im = cv::imread(vstrImageFilenames[ni],CV_LOAD_IMAGE_UNCHANGED);
+            |                                                ^~~~~~~~~~~~~~~~~~~~~~~
+      ```
+      参考 [ORB_SLAM2 Github Issue](https://github.com/raulmur/ORB_SLAM2/issues/451#issuecomment-955154787) 的这个回答，先找到 ORB_SLAM2 文件夹下所有含有 CV_LOAD_IMAGE_UNCHANGED 的 .cc 或 .h 文件：`find -type f -name "*.cc" -or -name "*.h" | xargs -i grep -l "CV_LOAD_IMAGE_UNCHANGED" {}`，然后在这些文件里加入头文件 `#include <opencv2/imgcodecs/imgcodecs_c.h>`，发现还是不行。<br>
+      参考这个人前面的人的回答：在刚刚找到的这些文件里加上 `#define CV_LOAD_IMAGE_UNCHANGED -1`。尝试后发现 build 成功。<br>
+      完成 build 之后，重新 build ros node，成功。
+
 - 测试 ORB_SLAM2 的 RGBD demo（使用 realsense D455）<br>
   打开三个终端
   - `roscore`
-  - `roslaunch realsense2_camera rs_rgbd.launch`
-  - `rosrun ORB_SLAM2 RGBD /root/catkin_ws/ORB_SLAM2/Vocabulary/ORBvoc.txt /root/catkin_ws/ORB_SLAM2/Examples/ROS/ORB_SLAM2/AsusD455.yaml`
+  - `roslaunch realsense2_camera rs_camera.launch`
+  - `rosrun ORB_SLAM2 RGBD /home/ubuntu/orbslam2/ORB_SLAM2/Vocabulary/ORBvoc.txt /home/ubuntu/orbslam2/ORB_SLAM2/Examples/ROS/ORB_SLAM2/AsusD455.yaml`
 
 #### 完成 rslidar_sdk 的安装
 - 打开工程内的 *CMakeLists.txt* 文件，将文件顶部的 `set(COMPILE_METHOD ORIGINAL)` 改为 `set(COMPILE_METHOD CATKIN)`。
