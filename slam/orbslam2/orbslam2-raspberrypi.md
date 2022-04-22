@@ -487,10 +487,14 @@ sudo apt install ubuntu-desktop
   && catkin_make \
   && source devel/setup.bash
   ```
-- 运行 rslidar_sdk
-  ```bash
-  roslaunch rslidar_sdk start.launch
-  ```
+- 测试
+  - 根据 RS-Lidar-16 用户手册附录 D.3，设置树莓派有线网卡的静态 IP 为 192.168.1.102，子网掩码为 255.255.255.0（设置方法参考[博客](https://www.cnblogs.com/yaohong/p/11593989.html)）。
+  - 修改 ~/catkin_ws/src/rslidar_sdk/config/config.yaml 文件。将 lidar_type 改为 RS16，将 frame_id 改为 rslidar（没有斜线）。
+  - 连接好激光雷达的电源，将接线盒通过网线与树莓派连起来。
+  - 运行 rslidar_sdk，即可看到扫描得到的点云。
+    ```bash
+    roslaunch rslidar_sdk start.launch
+    ```
 
 ## 参考链接
 1. 本仓库下的 [Dockerfile](.devcontainer/Dockerfile)
