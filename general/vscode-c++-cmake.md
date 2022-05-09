@@ -44,6 +44,7 @@
 - 参考链接
 	- https://code.visualstudio.com/docs/cpp/cmake-linux
 	- https://github.com/microsoft/vscode-cmake-tools/blob/main/docs/debug-launch.md
+	- https://github.com/microsoft/vscode-cmake-tools/blob/main/docs/cmake-settings.md
 - 示例程序：/home/yan/Learning/slam/cmakeVScode
 
 ### Build & Run
@@ -64,7 +65,7 @@
 - 编译器路径换成 gcc 的最新版本要好一点，其余与上面的 C++ 一样。
 
 ### 设置 CMake settings
-如果希望 vscode 在 configure 自己的 cmake project 的时候设置一些 configuration options 的话，可以在 .vscode 下创建 settings.json。
+如果希望 vscode 在 configure 自己的 cmake project 的时候设置一些 configuration options 的话，可以在 .vscode 下创建 settings.json。具体有哪些 settings 见第三个参考链接。
 - cmake.configureSettings：给 CMake 传入一些键值对，相当于 cmake 命令行的 `-DVAR_NAME=ON` 这种的。示例程序：/home/yan/Learning/slam/realsense/test。
 - cmake.buildDirectory：设置在哪里 build，vscode 默认是 `${workspaceFolder}/build`。
 
