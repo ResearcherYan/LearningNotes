@@ -49,6 +49,7 @@
 - 参考 [LeGO-LOAM](https://github.com/RobustFieldAutonomyLab/LeGO-LOAM)，编译 gtsam，并且 git clone LeGO-LOAM 源代码。（先不要急着编译）
 - 参考 [LeGO-LOAM：Ubuntu20.04下的编译与运行](https://blog.csdn.net/weixin_44156680/article/details/118070387?spm=1001.2101.3001.6661.1&utm_medium=distribute.pc_relevant_t0.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-1.pc_relevant_default&depth_1-utm_source=distribute.pc_relevant_t0.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-1.pc_relevant_default&utm_relevant_index=1) 中的第六条，修改源代码并安装缺失的库。博客里提到的 rviz 问题，需要去掉 "/" 的 frame_id 是 "/camera" 和 "/camera_init"。
 - `cd ~/catkin_ws && catkin_make -j1`
+- 成功编译一次后，之后再编译 LeGO-LOAM 的时候可以直接 `catkin_make -DCATKIN_WHITELIST_PACKAGES="lego_loam;cloud_msgs"`
 
 ### Debug LeGO-LOAM
 - 修改 LeGO-LOAM 的 launch 文件：`rosed lego_loam run.launch`，把 */use_sim_time* 由 true 改为 false，表示用的是实际采集的雷达数据，而非来自于 rosbag 的回放。
