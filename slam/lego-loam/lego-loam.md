@@ -7,11 +7,22 @@
   - [VLP-16](#vlp-16)
   - [LeGO-LOAM](#lego-loam)
   - [Debug LeGO-LOAM](#debug-lego-loam)
+- [Back on Raspberry Pi 4B](#back-on-raspberry-pi-4b)
+  - [Debug LeGO-LOAM on Raspberry Pi 4B](#debug-lego-loam-on-raspberry-pi-4b)
+- [Summary](#summary)
 
 ## Raspberry Pi 4B
 本来想直接在树莓派 4B 上部署 LeGO-LOAM，尝试了将近一周后，未果。主要原因可能还是 PCL/Boost/FLANN 库的版本问题。以下记录安装过程中的关键错误。
 - ROS Noetic 默认安装的是 PCL 1.10，这会直接导致 LeGO-LOAM 的 ImageProjection 线程崩溃。<br>
-- 转到 PCL 1.9 版本后，看起来 LeGO-LOAM 可以正常运行（虽然偶尔会出现 MapOptimization 线程崩溃的情况），rviz 窗口也能看到激光雷达扫到的点云，但参考[博客](https://blog.csdn.net/sinat_38792591/article/details/117064027)尝试把 LeGO-LOAM 得到的全局地图点云导出时，发现没有任何点云信息。回头看终端的输出信息，发现会有一段红字：*[pcl::KdTreeFLANN::setInputCloud] Cannot create a KDTree with an empty input cloud!*，感觉原因是 PCL 库没有接收到来自雷达的点云。
+- 转到 PCL 1.9 版本后，看起来 LeGO-LOAM 可以正常运行（虽然偶尔会出现 MapOptimization 线程崩溃的情况），rviz 窗口也能看到激光雷达扫到的点云，但参考[博客](https://blog.csdn.net/sinat_38792591/article/details/117064027)尝试把 LeGO-LOAM 得到的全局地图点云导出时，发现没有任何点云信息。回头看终端的输出信息，发现有一个 ERROR：
+  ```bash
+  [pcl::KdTreeFLANN::setInputCloud] Cannot create a KDTree with an empty input cloud!
+  ```
+  紧跟这个 ERROR 后面就是持续的 WARNING：
+  ```bash
+  [pcl::VoxelGrid::applyFilter] Invalid filter field name. Index is -1.
+  ```
+  感觉原因是 PCL 库没有接收到来自雷达的点云。
 - 在克服了重重困难，在树莓派上编译好 PCL 1.8 版本后，发现跟 PCL 1.9 一样，还是无法导出点云信息。
 
 暂时放弃在树莓派上部署的想法，先考虑在自己电脑上跑通 LeGO-LOAM（因为这样编译起来快很多，不用受到 VNC 连接经常卡顿的折磨，网速更快并且可以走代理）。以后如果再复现什么开源算法，先在自己电脑上跑通、debug 完了之后再考虑部署。
@@ -63,3 +74,42 @@
 - 参考 [LeGO-LOAM初探：原理，安装和测试](https://blog.csdn.net/learning_tortosie/article/details/86527542)，发现其实 LeGO-SLAM 自带了保存点云地图的功能，只需要在 rviz 中勾选 Map Cloud，然后再 ctrl + c，这样就会在 /tmp 目录下应该会生成 4 个 pcd 文件，其中 finalCloud.pcd 应该是最终的点云地图。
 - 安装 pcl-tools：`sudo apt install pcl-tools`<br>
   查看点云地图：`pcl_viewer /tmp/finalCloud.pcd`
+
+## Back on Raspberry Pi 4B
+既然在自己电脑上能用 Ubuntu 20 + ROS Noetic + PCL 1.10 版本顺利跑通 LeGO-LOAM，那在树莓派上应该也没道理跑不通，应该来说 arm 架构不至于影响这么大。
+- 在树莓派上用 PCL 1.10 版本编译 LeGO-LOAM：`catkin_make -DCATKIN_WHITELIST_PACKAGES="lego_loam;cloud_msgs"`，编译无报错。
+- `rosed lego_loam run.launch`，把 */use_sim_time* 改回为 true。（为了追求远程桌面操作的流畅度，树莓派的网口跟电脑连了，所以这里 debug 就采用下载好的 rosbag）
+- 启动 LeGO-LOAM：`roslaunch lego_loam run.launch`
+- 回放 rosbag：`rosbag play ~/Downloads/*.bag --clock --topic /velodyne_points /imu/data`<br>
+  报错：
+  ```bash
+  [imageProjection-5] process has died [pid 6783, exit code -7, cmd /home/ubuntu/catkin_ws/devel/lib/lego_loam/imageProjection __name:=imageProjection __log:=/home/ubuntu/.ros/log/16082268-d197-11ec-a841-b9d1cd283576/imageProjection-5.log].
+  log file: /home/ubuntu/.ros/log/16082268-d197-11ec-a841-b9d1cd283576/imageProjection-5*.log
+  ```
+  这是 PCL 1.10 版本编译后的老错误了。
+
+### Debug LeGO-LOAM on Raspberry Pi 4B
+- 首先在 imageProjection.cpp 里在几个关键设置 cout，看看是哪里有问题。结果发现是在 175 行的这句出了问题：
+  ```cpp
+  pcl::removeNaNFromPointCloud(*laserCloudIn, *laserCloudIn, indices);
+  ```
+  所以报错其实是因为无法成功除去掉点云中的奇异点。<br>
+  如果把这句话注释掉，可以正常运行程序，但就像 PCL 1.9 版本一样，也是会报以下的 ERROR 和 WARNING：
+  ```bash
+  # ERROR
+  [pcl::KdTreeFLANN::setInputCloud] Cannot create a KDTree with an empty input cloud!
+  # WARNING
+  [pcl::VoxelGrid::applyFilter] Invalid filter field name. Index is -1.
+  ```
+- 用 VSCode 在 imageProjection.cpp 的 175 行设置断点，参考 [vscode下调试ROS项目，节点调试，多节点调试，roslauch调试](https://zhuanlan.zhihu.com/p/364972107) 里的 ROS Attach 的方式进行调试。
+  - `rosed lego_loam run.launch`（跑之前确保 /use_sim_time 为 true）
+  - Attach 到 imageProjection 的进程
+  - `rosbag play ~/Downloads/*.bag --clock --topic /velodyne_points /imu/data`
+  - 逐步调试后没发现任何异常值，但在 DEBUG CONSOLE 还是报错：
+    ```bash
+    Thread 1 "imageProjection" received signal SIGBUS, Bus error.
+    ```
+  - 同样的 debug 设置，切换到自己电脑上，发现逐步调试没有问题，点云相关的值是一样的。
+
+## Summary
+一样的操作系统，一样的 ROS 版本，一样的 PCL/Boost/FLANN 版本。但在自己电脑上跑就是没问题，在树莓派上就无法跑通，最终只能归结为 arm 架构的问题。
