@@ -110,6 +110,10 @@
     Thread 1 "imageProjection" received signal SIGBUS, Bus error.
     ```
   - 同样的 debug 设置，切换到自己电脑上，发现逐步调试没有问题，点云相关的值是一样的。
+  - 看了几篇 SIGBUS 相关的资料：[link 1](https://www.geeksforgeeks.org/segmentation-fault-sigsegv-vs-bus-error-sigbus/), [link 2](https://blog.csdn.net/codejoker/article/details/4543136), [link 3](https://stackoverflow.com/questions/212466/what-is-a-bus-error-is-it-different-from-a-segmentation-fault)。基本上能够确定是 arm 架构的问题了。<br>
+    - [link 1](https://www.geeksforgeeks.org/segmentation-fault-sigsegv-vs-bus-error-sigbus/) 中提到报 SIGBUS 的错误，可能是由 Unaligned access of memory 导致的
+    - [link 2](https://blog.csdn.net/codejoker/article/details/4543136) 提到某些架构上访问数据时有对齐的要求，但有些没有硬性要求
+    - [link 3](https://stackoverflow.com/questions/212466/what-is-a-bus-error-is-it-different-from-a-segmentation-fault) 中第一条回答说在 x86 架构上已经很少遇到 SIGBUS 的错误了，更多的时候报的是 segementation fault（也就是 SIGSEGV）。
 
 ## Summary
 一样的操作系统，一样的 ROS 版本，一样的 PCL/Boost/FLANN 版本。但在自己电脑上跑就是没问题，在树莓派上就无法跑通，最终只能归结为 arm 架构的问题。
