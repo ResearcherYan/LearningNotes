@@ -6,9 +6,18 @@
   - [Ubuntu 扩容](#ubuntu-扩容)
   - [Linux 环境变量文件](#linux-环境变量文件)
   - [Ubuntu 格式化U盘](#ubuntu-格式化u盘)
+  - [整理 Ubuntu 应用程序](#整理-ubuntu-应用程序)
+    - [卸载 gnome 桌面自带的一些多余应用](#卸载-gnome-桌面自带的一些多余应用)
+    - [重新安装 toplcons plus 插件](#重新安装-toplcons-plus-插件)
+    - [重新安装 deepin-wine](#重新安装-deepin-wine)
+    - [安装微信](#安装微信)
+    - [安装 deepin-wine 的其他应用](#安装-deepin-wine-的其他应用)
+    - [安装 WPS 最新版](#安装-wps-最新版)
+    - [安装 tlp 提高续航](#安装-tlp-提高续航)
 - [Troubleshooting](#troubleshooting)
   - [curl: (6) Could not resolve host: ...](#curl-6-could-not-resolve-host-)
   - [E: 无法获得锁 /var/lib/dpkg/lock - open (11: Resource temporarily unavailable)](#e-无法获得锁-varlibdpkglock---open-11-resource-temporarily-unavailable)
+  - [无法在文件夹中打开终端](#无法在文件夹中打开终端)
 
 ## Basics
 ### Ubuntu 安装
@@ -37,6 +46,29 @@ PS：如果还没买电脑，可以先参考 [Ubuntu certified hardware](https:/
   - 先打开U盘目录，然后右键，“在终端打开”，就可以找到U盘在文件系统中的路径名，如 */media/yan/1a27ccc0-c38e-4b5d-a8c2-96dd49c13f2c*。
   - 再给这个路径读写权限：`sudo chmod 777 /media/yan/1a27ccc0-c38e-4b5d-a8c2-96dd49c13f2c`
 
+### 整理 Ubuntu 应用程序
+由于一些原因重装了 ubuntu-desktop，因此打算就此整理一下 ubuntu 一些多余的应用程序。
+#### 卸载 gnome 桌面自带的一些多余应用
+参考[博客](https://blog.csdn.net/qq_45642410/article/details/108938887)，卸载掉 libreoffice 和其他一些多余应用。
+#### 重新安装 toplcons plus 插件
+[链接](https://extensions.gnome.org/extension/1031/topicons/)
+#### 重新安装 deepin-wine
+- 参考 deepin-wine 原项目的 [uninstall.sh](https://github.com/wszqkzqk/deepin-wine-ubuntu/blob/master/uninstall.sh)，卸载原来装好的 deepin-wine。
+- 参考 [新 deepin-wine 项目](https://github.com/zq1997/deepin-wine)，重新安装 deepin-wine
+#### 安装微信
+- 直接 `sudo apt-get install com.qq.weixin.deepin` 会报依赖错误，具体原因参考自己在 [github issue](https://github.com/zq1997/deepin-wine/issues/275#issuecomment-1134294381) 上的回答。
+- 安装好之后 win+A 找不到 wechat 的图标，重新电脑后找到。
+- 登录上微信后，发现微信里的图片只有一个长条，点开后看不了。要安装一个依赖：`sudo apt install libjpeg62:i386`
+#### 安装 deepin-wine 的其他应用
+- QQ 和 TIM 都不能用。尝试了 deepin-wine 官方的安装方法、[linux qq 官方给的 deb 包](https://im.qq.com/linuxqq/download.html)、参照 [github issue](https://github.com/zq1997/deepin-wine/issues/234#issuecomment-967174898) 用星火的qq安装包、参考 [link 1](https://github.com/zq1997/deepin-wine/issues/230#issuecomment-997619889), [link 2](https://github.com/zq1997/deepin-wine/issues/230#issuecomment-998018443), [link 3](https://zhuanlan.zhihu.com/p/141107518) 用腾讯官网最新的exe程序联动 deepin-wine 来安装，都无果。最后只好跟之前一样，切换到 [老 deepin-wine 项目](https://github.com/wszqkzqk/deepin-wine-ubuntu)下，安装旧版的 TIM。
+- 腾讯会议可以正常运行，但没法采集到电脑的麦克风，因此安装完之后果断卸掉。
+#### 安装 WPS 最新版
+- 卸载原来的 wps：`sudo apt purge wps*`（怕新包与老包冲突）
+- 下载 wps linux 最新版 deb 包，dpkg 安装。
+- 参考 [知乎](https://zhuanlan.zhihu.com/p/149773169)，设置 wps 语言为中文（默认是系统语言）。
+#### 安装 tlp 提高续航
+- 参考 [博客](https://bynss.com/linux/673085.html)，安装 tlp：`sudo apt-get install tlp`（安装好之后默认就是开的，不用再 `sudo tlp start`）
+- 查看电池状况：`sudo tlp-stat -b`，看到电池居然只剩下 2720 mAh，怪不得用 ubuntu 只撑的了 1-1.5h。
 ## Troubleshooting
 ### curl: (6) Could not resolve host: ...
 - 报错描述：在使用 curl 下载时报错
@@ -60,3 +92,11 @@ PS：如果还没买电脑，可以先参考 [Ubuntu certified hardware](https:/
   15621 ?        00:00:00 apt.systemd.dai
   eaibot@DashgoD1:~$ sudo kill 15621
   ```
+
+### 无法在文件夹中打开终端
+- 报错描述：无法在文件夹中通过右键的方式打开终端。
+- 报错原因：卸载坚果云(nautilus-store)的时候用 `locate nautilus` 命令误删掉了很多关于 nautilus 的包，结果发现 nautilus 是 gnome 的一部分。
+- 解决办法
+  - 单独重装 nautilus，报了很多依赖错误。
+  - 用 aptitude 安装 nautilus，由于自己的 Ubuntu20 是从 Ubuntu16 升级过来的，所以在软件源列表里还保留了 Ubuntu16 的 xenial 源，然后 aptitude 就让某个包降到了 xenial 源里的一个版本，结果就出现了一个新的文件夹 UI，通过 win+A 发现有两个“文件”的图标，只有在这个新文件夹 UI 里才能通过右键的方式打开终端。所以应该这个新文件夹 UI 应该是 Ubuntu16 版本的东西，通过查阅后发现的确是这样，Ubuntu16 的默认桌面是 Unity 而非 gnome，所以那个新文件夹 UI 应该是 Unity 的。
+  - 索性直接 ctrl+alt+f3 进入命令行，先把在终端编辑一个文件（具体哪个文件不记得了，要用的时候再查一下）把系统语言设置为英文（不这样的话命令行会乱码），卸载 unity 和 ubuntu-desktop，然后再重装 ubuntu-destop。
