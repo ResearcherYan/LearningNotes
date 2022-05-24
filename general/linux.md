@@ -17,6 +17,7 @@
 - [Troubleshooting](#troubleshooting)
   - [curl: (6) Could not resolve host: ...](#curl-6-could-not-resolve-host-)
   - [E: 无法获得锁 /var/lib/dpkg/lock - open (11: Resource temporarily unavailable)](#e-无法获得锁-varlibdpkglock---open-11-resource-temporarily-unavailable)
+  - [因为 Nvidia 相关依赖错误导致 apt 无法安装新的软件包](#因为-nvidia-相关依赖错误导致-apt-无法安装新的软件包)
   - [无法在文件夹中打开终端](#无法在文件夹中打开终端)
 
 ## Basics
@@ -47,7 +48,7 @@ PS：如果还没买电脑，可以先参考 [Ubuntu certified hardware](https:/
   - 再给这个路径读写权限：`sudo chmod 777 /media/yan/1a27ccc0-c38e-4b5d-a8c2-96dd49c13f2c`
 
 ### 整理 Ubuntu 应用程序
-由于一些原因重装了 ubuntu-desktop，因此打算就此整理一下 ubuntu 一些多余的应用程序。
+由于一些原因卸载了 Nvidia 的 cuda 包（包含显卡驱动），还重装了 ubuntu-desktop，因此打算就此整理一下 ubuntu 一些多余的应用程序。
 #### 卸载 gnome 桌面自带的一些多余应用
 参考[博客](https://blog.csdn.net/qq_45642410/article/details/108938887)，卸载掉 libreoffice 和其他一些多余应用。
 #### 重新安装 toplcons plus 插件
@@ -92,6 +93,12 @@ PS：如果还没买电脑，可以先参考 [Ubuntu certified hardware](https:/
   15621 ?        00:00:00 apt.systemd.dai
   eaibot@DashgoD1:~$ sudo kill 15621
   ```
+
+### 因为 Nvidia 相关依赖错误导致 apt 无法安装新的软件包
+- 报错描述：如标题所示
+- 报错原因：可能在装别的包的时候降低了一些依赖的版本，然后 Nvidia 的包又依赖于这些包。
+- 解决办法：因为现在用不上 N 卡了，大部分时候用不着深度学习，要用深度学习也会去用服务器，所以直接把 N 卡的驱动卸掉，因为当时安装的时候是直接装的 cuda 的 deb 包，所以先卸掉 cuda 的相关包：`sudo apt purge cuda*`，再卸掉 nvidia 相关的包：`sudo apt purge nvidia*`。
+
 
 ### 无法在文件夹中打开终端
 - 报错描述：无法在文件夹中通过右键的方式打开终端。
