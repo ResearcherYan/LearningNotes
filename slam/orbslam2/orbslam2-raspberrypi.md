@@ -436,7 +436,7 @@ sudo apt install ubuntu-desktop
       执行 `rosdep update` 的时候老是报错 read time out 的错误。<br>
       尝试 [博客 1](https://blog.csdn.net/qq_38649880/article/details/87903654) 里的做法，把 `DOWNLOAD_TIMEOUT` 调大一点，从 15 调到了 60，还是会报同样的错。<br>
       尝试 [博客 2](https://blog.csdn.net/weixin_41010198/article/details/109495305) 的做法，先 `apt update` 再 `sudo rosdep init` 和 `rosdep update`，也是一样报错。<br>
-      观察到每次在哪一步 read time out 其实是有随机性的，所以也不是说某个网站就一定无法链接上，决定碰运气多试几次，再继续尝试两三次后终于全部链接上，成功。<br>
+      观察到每次在哪一步 read time out 其实是有随机性的，所以也不是说某个网站就一定无法链接上，决定碰运气多试几次，再继续尝试两三次后终于全部链接上，成功。这其实是属于运气比较好，不太建议这么做，更靠谱的做法参考 [ros2.md](../../ros/ros2.md#base)。<br>
       然后重新 build ros node
       ```bash
       cd /home/ubuntu/orbslam2/ORB_SLAM2 \
