@@ -2,7 +2,8 @@
 
 
 - [Installation](#installation)
-- [Tutorial](#tutorial)
+- [ROS vs. ROS2](#ros-vs-ros2)
+- [Tutorial - Concept](#tutorial---concept)
   - [Base](#base)
   - [Nodes](#nodes)
   - [Topics](#topics)
@@ -10,12 +11,27 @@
     - [Services vs. Topics](#services-vs-topics)
   - [Parameters](#parameters)
   - [Actions](#actions)
-    - [Mechanism of Actions](#mechanism-of-actions)
-    - [Usage of Actions](#usage-of-actions)
+    - [Background](#background)
+    - [Usage](#usage)
   - [rqt_console](#rqt_console)
   - [Launch](#launch)
   - [Bag](#bag)
   - [Workspace](#workspace)
+    - [Background](#background-1)
+    - [Usage](#usage-1)
+  - [Package](#package)
+    - [Background](#background-2)
+    - [Usage](#usage-2)
+- [Tutorial - Practice](#tutorial---practice)
+  - [Writing a simple publisher and subscriber (C++)](#writing-a-simple-publisher-and-subscriber-c)
+  - [Writing a simple service and client (C++)](#writing-a-simple-service-and-client-c)
+  - [Creating custom ROS 2 msg and srv files](#creating-custom-ros-2-msg-and-srv-files)
+  - [Expanding on ROS 2 interfaces](#expanding-on-ros-2-interfaces)
+  - [Using parameters in a class (C++)](#using-parameters-in-a-class-c)
+  - [Getting started with ros2doctor](#getting-started-with-ros2doctor)
+  - [Creating and Using Plugins (C++)](#creating-and-using-plugins-c)
+    - [Background](#background-3)
+    - [Usage](#usage-3)
 
 
 ## Installation
@@ -25,8 +41,13 @@
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] https://mirrors.ustc.edu.cn/ros2/ubuntu/ $(source /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
 ```
 
-## Tutorial
-参考[官方教程](https://docs.ros.org/en/humble/Tutorials.html#)，把 Beginner Level 的教程过了一遍。
+## ROS vs. ROS2
+- ROS2 没有 master 节点了。
+- ROS2 没有 filesystem tools 了，没法使用 rospack, roscd, rosls, rosed 等文件管理功能。
+- ROS2 不再使用 catkin 为默认的 build tool，使用的是 colcon。
+
+## Tutorial - Concept
+[官方教程](https://docs.ros.org/en/humble/Tutorials.html#) Beginner Level: From [Configuring your ROS 2 environment](https://docs.ros.org/en/humble/Tutorials/Configuring-ROS2-Environment.html) to [Creating your first ROS 2 package](https://docs.ros.org/en/humble/Tutorials/Creating-Your-First-ROS2-Package.html)
 
 ### Base
 - 把启动 ROS2 的 setup file 写到 bashrc 里，以免每次打开新的终端都要 source 一下：`echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc`
@@ -131,7 +152,7 @@ A parameter is a configuration value of a node.
   - `ros2 run <package_name> <executable_name> --ros-args --params-file <file_name>`
 
 ### Actions
-#### Mechanism of Actions
+#### Background
 Action 是用于长期运行任务的一种 communication type。<br>
 Action 包括三部分: a goal, feedback, and a result。<br>
 Action 用的是 client-server 模型，但跟 service 的差别在于 action 在进行过程中**可以收到反馈**并且是**可以被中断**的，如果是由 client 侧提出要停止一个 goal，称为 cancel a goal，如果是由 server 侧决定要停止一个 goal，称为 abort a goal。<br>
@@ -140,7 +161,7 @@ Action 的具体工作流程为
 - action client 借助 result service 再给 action server 发一个 request，在完成 goal 之前，action server 会一直通过 feedback topic 给 action client 发送 feedback，任务完成后会给出一个 response。
 <img src='../img/ros2_1.gif'><br>
 
-#### Usage of Actions
+#### Usage
 - **ros2 node info**: `ros2 node info <node_name>` 会显示 node 下面有哪些 action server 和 action client
 - **ros2 action list**: Show all the actions in the ROS graph.
   - `ros2 action list`
@@ -173,4 +194,130 @@ Launch files allow you to start up and configure a number of executables contain
   - `ros2 bag play <bag_file_name>`
 
 ### Workspace
+#### Background
 A workspace is a directory containing ROS 2 packages.
+- **overlay**: A secondary workspace where you can add new packages without interfering with the existing ROS 2 workspace that you’re extending.
+- **underlay**: Contain the dependencies of all the packages in your overlay. Packages in your overlay will override packages in the underlay.
+
+#### Usage
+- **Create a workspace**: `mkdir -p ~/dev_ws/src`
+- **Create a package under the workspace**: `cd ~/dev_ws/src && git clone https://github.com/ros/ros_tutorials.git -b humble-devel`
+- **Resolve dependencies**: `cd ~/dev_ws && rosdep install -i --from-path src --rosdistro humble -y`
+- **Build the workspace with colon**: `colcon build`. Once the build is finished, there will be 4 new folders in your workspace: `build install log src`. The `install` directory is where your workspace’s setup files are, which you can use to source your overlay.
+  - `--packages-select` builds the package you want.
+  - `--packages-up-to` builds the package you want, plus all its dependencies.
+  - `--cmake-clean-cache` remove the CMake cache file `CMakeCache.txt` from the build directory before proceeding with the build. This implicitly **forces a CMake configure step**.
+  - `--symlink-install` saves you from having to rebuild every time you tweak python scripts.
+  - `--event-handlers console_direct+` shows console output while building (can otherwise be found in the log directory).
+- **Source the overlay**: `turtlesim` 本来就存在于 ROS2 的主环境里，这是一个 underlay 版本，上面的操作又在自己的 workspace 里面 build 了一个 overlay 版本的 `turtlesim`。此时，如果新开一个终端，执行 `source ~/dev_ws/install/local_setup.bash`，相当于只会把 overlay 环境的包（即自己 workspace 里面的包）添加到终端环境中，但如果执行的是 `source ~/dev_ws/install/setup.bash`，就会同时把 overlay 版本的包和 ROS2 主环境的包都添加到终端环境里，不过 `setup.bash` 会先 source ROS2 主环境，然后再 source overlay 环境（即自己的 workspace），这样就能保证如果 ROS2 主环境和 overlay 环境有相同的包，终端默认使用的包就是 overlay 环境的包。
+
+### Package
+#### Background
+Package creation in ROS 2 uses **ament** as its build system and **colcon** as its build tool.
+- `package.xml` file containing meta information about the package.
+- `CMakeLists.txt` file that describes how to build the code within the package.
+
+#### Usage
+在同一个终端下执行以下命令
+- **Create a package**: 基本的格式为 `ros2 pkg create --build-type ament_cmake <package_name>`
+  - `cd ~/dev_ws/src && ros2 pkg create --build-type ament_cmake --node-name my_node my_package`: 加上 `--node-name` 会在 my_package 里创建一个简单的 Hello World type executable.
+- **Build a package**: `cd .. && colcon build --packages-select my_package`
+- **Source the setup file**: `source install/local_setup.bash`
+- **Use the package**: `ros2 run my_package my_node`
+- **Customize package.xml**: 参考 [ros2 doc](https://docs.ros.org/en/humble/Tutorials/Creating-Your-First-ROS2-Package.html#customize-package-xml) 修改 `package.xml`。主要需要修改的几个地方是：
+  - `maintainer`, `descprition`, `license`: 如果要发布自己的包，这几项需要填写。
+  - tags names ending with `_depend`: 用于向 colcon 描述这个 package 的依赖。
+
+## Tutorial - Practice
+[官方教程](https://docs.ros.org/en/humble/Tutorials.html#) Beginner Level: From [Writing a simple publisher and subscriber (C++)](https://docs.ros.org/en/humble/Tutorials/Writing-A-Simple-Cpp-Publisher-And-Subscriber.html) to [Creating and Using Plugins (C++)](https://docs.ros.org/en/humble/Tutorials/Pluginlib.html)
+
+### Writing a simple publisher and subscriber (C++)
+在同一个终端下执行以下命令
+1. **Create a package**: `cd ~/dev_ws/src && ros2 pkg create --build-type ament_cmake cpp_pubsub`
+2. **Write the publisher code**
+   - `wget -O cpp_pubsub/src/publisher_member_function.cpp https://raw.githubusercontent.com/ros2/examples/humble/rclcpp/topics/minimal_publisher/member_function.cpp`
+   - 按照 [2.2 Add dependencies](https://docs.ros.org/en/humble/Tutorials/Writing-A-Simple-Cpp-Publisher-And-Subscriber.html#add-dependencies) 的要求修改 `package.xml` 文件，添加上 publisher 节点所需的依赖（与后面 subscriber 节点的依赖相同）。
+   - 按照 [2.3 CMakeLists.txt](https://docs.ros.org/en/humble/Tutorials/Writing-A-Simple-Cpp-Publisher-And-Subscriber.html#cmakelists-txt) 的要求修改 `CMakeLists.txt` 文件。
+3. **Write the subscriber node**
+   - `wget -O cpp_pubsub/src/subscriber_member_function.cpp https://raw.githubusercontent.com/ros2/examples/humble/rclcpp/topics/minimal_subscriber/member_function.cpp`。下载好 subscriber 的代码后，发现跟 publisher 的代码很像，只不过 subscriber 没有 timer 了，因为它只需要对 topic 发出的数据给出 response 就行，不需要 timer。
+   - 按照 [3.2 CMakeLists.txt](https://docs.ros.org/en/humble/Tutorials/Writing-A-Simple-Cpp-Publisher-And-Subscriber.html#id2) 的要求修改 `CMakeLists.txt` 文件。
+4. **Build and run**
+   - 在 build 之前先确认安装了所有的依赖（在本例里所需的依赖就是 `rclcpp` 和 `std_msgs`，在安装 ROS2 的时候就已经安装了）: `cd .. && rosdep install -i --from-path src --rosdistro humble -y`
+   - Build cpp_pubsub package: `colcon build --packages-select cpp_pubsub`
+   - Source the setup file and run the **talker** node: `source install/setup.bash && ros2 run cpp_pubsub talker`
+   - Open a new terminal. Source the setup file and run the **listener** node: `source ~/dev_ws/install/setup.bash && ros2 run cpp_pubsub listener`
+
+### Writing a simple service and client (C++)
+The structure of the request and response, which are generated during the *service* communication, is determined by a `.srv` file.<br><br>
+在同一个终端执行以下命令
+1. **Create a package**: `cd ~/dev_ws/src && ros2 pkg create --build-type ament_cmake cpp_srvcli --dependencies rclcpp example_interfaces`。其中 `--dependencies` 会将依赖添加到 `package.xml` 和 `CMakeLists.txt` 中。依赖 `example_interfaces` 包括了本例中需要用到的 *.srv* 文件。
+2. **Write the service node**: 按照 [2 Write the service node](https://docs.ros.org/en/humble/Tutorials/Writing-A-Simple-Cpp-Service-And-Client.html#write-the-service-node) 写一个 `add_two_ints_server.cpp` 文件。
+3. **Write the client node**
+   - 按照 [3 Write the client node](https://docs.ros.org/en/humble/Tutorials/Writing-A-Simple-Cpp-Service-And-Client.html#write-the-client-node) 写一个 `add_two_ints_client.cpp` 文件。
+   - 按照 [3.2 Add executable](https://docs.ros.org/en/humble/Tutorials/Writing-A-Simple-Cpp-Service-And-Client.html#id2) 修改好 `CMakeLists.txt`。
+4. **Build and run**
+   - 在 build 之前先确认安装了所有的依赖（在本例里所需的依赖在安装 ROS2 的时候就已经安装了）: `cd .. && rosdep install -i --from-path src --rosdistro humble -y`
+   - Build cpp_srvcli package: `colcon build --packages-select cpp_srvcli`
+   - Source the setup file and run the **service** node: `source install/setup.bash && ros2 run cpp_srvcli server`
+   - Open a new terminal. Source the setup file and run the **client** node: `source ~/dev_ws/install/setup.bash && ros2 run cpp_srvcli client 2 3`
+
+### Creating custom ROS 2 msg and srv files
+前两个 tutorial 都是用的已经定义好的接口，但经常需要自己定义数据接口，这就需要自己创建 `.msg` 和 `.srv` 文件。<br><br>
+在同一个终端执行以下命令
+1. **Create a package**
+   ```bash
+   cd ~/dev_ws/src && ros2 pkg create --build-type ament_cmake tutorial_interfaces
+   cd tutorial_interfaces && mkdir msg && mkdir srv
+   ```
+2. **Create custom definitions**
+   - msg definition: `cd /msg && echo "int64 num" >> Num.msg`
+   - srv definition: `cd ../srv && echo -e "int64 a\nint64 b\nint64 c\n---\nint64 sum" >> AddThreeInts.srv`
+3. **Modify `CMakeLists.txt`**: 按照 [3 `CMakeLists.txt`](https://docs.ros.org/en/humble/Tutorials/Custom-ROS2-Interfaces.html#cmakelists-txt) 修改 `CMakeLists.txt`。
+4. **Modify `package.xml`**: 按照 [4 `package.xml`](https://docs.ros.org/en/humble/Tutorials/Custom-ROS2-Interfaces.html#package-xml) 修改 `package.xml`。
+5. **Build**: `cd ~/dev_ws && colcon build --packages-select tutorial_interfaces`
+6. **Test the new interfaces**
+   1. Testing `Num.msg` with pub/sub. 参考 [7.1 Testing `Num.msg` with pub/sub](https://docs.ros.org/en/humble/Tutorials/Custom-ROS2-Interfaces.html#testing-num-msg-with-pub-sub)，修改 cpp_pubsub 包，使其 message type 变为 `Num.msg`。
+   2. Testing `AddThreeInts.srv` with service/client. 参考 [7.2 Testing `AddThreeInts.srv` with service/client](https://docs.ros.org/en/humble/Tutorials/Custom-ROS2-Interfaces.html#testing-addthreeints-srv-with-service-client)，修改 cpp_srvcli 包，使其 service type 变为 `AddThreeInts.srv`。注意教程里并没有改 cpp_srvcli 包下源代码的文件名，但为了统一起见，还是把源代码文件名改成了 add_three_ints_xxx.cpp，这就要求把 `CMakeLists.txt` 里面的两句 `add_executable` 也给改了。
+
+### Expanding on ROS 2 interfaces
+前一个教程主要讲怎么自定义接口，这个教程主要讲怎么把所有的接口（可能会包括很多的数据类型）都集成在一个包里面。
+1. **Create a package**
+   ```bash
+   cd ~/dev_ws/src && ros2 pkg create --build-type ament_cmake more_interfaces
+   mkdir more_interfaces/msg
+   ```
+2. **Create a msg file**: 按照 [2 Create a msg file](https://docs.ros.org/en/humble/Tutorials/Single-Package-Define-And-Use-Interface.html#create-a-msg-file) 和 [3 Use an interface from the same package](https://docs.ros.org/en/humble/Tutorials/Single-Package-Define-And-Use-Interface.html#use-an-interface-from-the-same-package) 创建 msg file，写好 publisher 源代码，构建好 `CMakeLists.txt` 和 `package.xml`。
+3. **Build and run**
+   - `cd ~/dev_ws && colcon build --packages-up-to more_interfaces`
+   - `source install/local_setup.bash && ros2 run more_interfaces publish_address_book`
+   - Open a new terminal. `source ~/dev_ws/install/local_setup.bash && ros2 topic echo /address_book`
+
+### Using parameters in a class (C++)
+This tutorial will show you how to create parameters in a C++ class, and how to **set them in a launch file**.
+1. **Create a package**: `cd ~/dev_ws/src && ros2 pkg create --build-type ament_cmake cpp_parameters --dependencies rclcpp`
+2. **Write the C++ node**: 按照 [2 Write the C++ node](https://docs.ros.org/en/humble/Tutorials/Using-Parameters-In-A-Class-CPP.html#write-the-c-node) 写好节点的 C++ 源代码。
+3. **Build and run**
+   - `cd ~/dev_ws && rosdep install -i --from-path src --rosdistro humble -y`
+   - `colcon build --packages-select cpp_parameters`
+   - `source install/setup.bash && ros2 run cpp_parameters parameter_node`
+   - Change the parameter via the console: `cd ~/dev_ws && source install/setup.bash && ros2 param set /parameter_node my_parameter earth`
+   - Change the parameter via a launch file: 按照 [3.2 Change via a launch file](https://docs.ros.org/en/humble/Tutorials/Using-Parameters-In-A-Class-CPP.html#change-via-a-launch-file)，创建一个 launch file 并修改 `CMakeLists.txt`，然后 `source install/setup.bash && ros2 launch cpp_parameters cpp_parameters_launch.py`。
+
+### Getting started with ros2doctor
+**ros2doctor** checks all aspects of ROS 2, including platform, version, network, environment, running systems and more, and warns you about possible errors and reasons for issues.
+- Examine your general *ROS 2 setup* as a whole: `ros2 doctor`
+- Get a full report: `ros2 doctor --report`
+
+### Creating and Using Plugins (C++)
+This is the last Beginner Level tutorial. This tutorial shows how to create and load a simple plugin using pluginlib.<br>
+
+#### Background
+pluginlib is a C++ library for loading and unloading plugins from within a ROS package. Plugins are dynamically loadable classes that are loaded from a runtime library (i.e. shared object, dynamically linked library). With pluginlib, one does not have to explicitly link their application against the library containing the classes – instead pluginlib can open a library containing exported classes at any point without the application having any prior awareness of the library or the header file containing the class definition. Plugins are useful for extending/modifying application behavior without needing the application source code.
+
+#### Usage
+1. **Create two packages**: 在本教程中，会创建两个包：一个用于定义 base class，另一个提供 plugin。
+   - Create the base class package: 参考 [1 Create the Base Class Package](https://docs.ros.org/en/humble/Tutorials/Pluginlib.html#create-the-base-class-package)
+   - Create the plugin package: 参考 [2 Create the Plugin Package](https://docs.ros.org/en/humble/Tutorials/Pluginlib.html#create-the-plugin-package)，但注意在修改 `CMakeLists.txt` 的时候，教程里说需要添加的代码可能有一部分在原本的 `CMakeLists.txt` 里已经存在了，需要自己对比着看看，不要重复添加。
+2. **Build and run**
+   - `cd ~/dev_ws && colcon build --packages-select polygon_base polygon_plugins`
+   - `source install/setup.bash && ros2 run polygon_base area_node`

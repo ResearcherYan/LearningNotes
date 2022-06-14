@@ -35,7 +35,7 @@ PS：如果还没买电脑，可以先参考 [Ubuntu certified hardware](https:/
 - `/etc/profile`：为系统的每个用户设置环境信息，当用户第一次登录时，该文件被执行。
 - `/etc/bashrc`：为每一个运行 bash shell 的用户执行此文件。
 - `~/.bash_profile` 或 `~/.profile`：作用域仅限当前用户，可使用该文件输入专用于当前用户使用的 shell 信息，用户登录时，该文件仅仅执行一次。在 Debian 中使用 .profile 文件代替 .bash_profile 文件以兼容不同的 shell。
-- `~/.bashrc`：作用域仅限当前用户，当用户登录时以及**每次打开新的 shell 时**，该文件被读取。
+- `~/.bashrc`：作用域仅限当前用户，当用户登录时以及**每次打开新的 shell 时**，该文件被读取。如果在修改 `~/.bashrc` 时不小心出现文件内容覆盖的情况，比如 `echo "hello world" > ~/.bashrc`，单个 > 表示的就是覆盖（>> 才表示的是添加内容），此时就只能将系统储存的备份文件复制到 `~/` 下：`cp /etc/skel/.bashrc ~/`，然后再手动添加本来已添加的环境变量。
 
 执行顺序见下图<br>
 <img src=../img/linux_1.png width=50%><br>
