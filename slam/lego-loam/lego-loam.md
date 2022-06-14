@@ -2,14 +2,17 @@
 
 > CONTENT
 - [Raspberry Pi 4B](#raspberry-pi-4b)
-- [PC](#pc)
+- [PC - Old](#pc---old)
   - [ROS Noetic](#ros-noetic)
   - [VLP-16](#vlp-16)
   - [LeGO-LOAM](#lego-loam)
   - [Debug LeGO-LOAM](#debug-lego-loam)
 - [Back on Raspberry Pi 4B](#back-on-raspberry-pi-4b)
   - [Debug LeGO-LOAM on Raspberry Pi 4B](#debug-lego-loam-on-raspberry-pi-4b)
-- [Summary](#summary)
+  - [Summary](#summary)
+- [PC - New](#pc---new)
+  - [编译 gtsam 遇到的问题](#编译-gtsam-遇到的问题)
+  - [编译 LeGO-LOAM](#编译-lego-loam)
 
 ## Raspberry Pi 4B
 本来想直接在树莓派 4B 上部署 LeGO-LOAM，尝试了将近一周后，未果。主要原因可能还是 PCL/Boost/FLANN 库的版本问题。以下记录安装过程中的关键错误。
@@ -27,7 +30,7 @@
 
 暂时放弃在树莓派上部署的想法，先考虑在自己电脑上跑通 LeGO-LOAM（因为这样编译起来快很多，不用受到 VNC 连接经常卡顿的折磨，网速更快并且可以走代理）。以后如果再复现什么开源算法，先在自己电脑上跑通、debug 完了之后再考虑部署。
 
-## PC
+## PC - Old
 做好心理准备，尝试在自己电脑上跑通 LeGO-LOAM（因为自己电脑上的各种库环境要比树莓派上复杂）。
 ### ROS Noetic
 参考 [Ubuntu install of ROS Noetic](http://wiki.ros.org/noetic/Installation/Ubuntu)，步骤 1.2 选择用中科大的源。
@@ -115,5 +118,24 @@
     - [link 2](https://blog.csdn.net/codejoker/article/details/4543136) 提到某些架构上访问数据时有对齐的要求，但有些没有硬性要求
     - [link 3](https://stackoverflow.com/questions/212466/what-is-a-bus-error-is-it-different-from-a-segmentation-fault) 中第一条回答说在 x86 架构上已经很少遇到 SIGBUS 的错误了，更多的时候报的是 segementation fault（也就是 SIGSEGV）。
 
-## Summary
+### Summary
 一样的操作系统，一样的 ROS 版本，一样的 PCL/Boost/FLANN 版本。但在自己电脑上跑就是没问题，在树莓派上就无法跑通，最终只能归结为 arm 架构的问题。
+
+## PC - New
+新电脑装的是 ubuntu 22，只能使用 ROS2，记录一下 LeGO-LOAM 安装过程中遇到的问题。
+### 编译 gtsam 遇到的问题
+- Boost 版本太新（1.74），与 gtsam 4.0.0-alpha2 版本不适配
+  ```log
+  [ 28%] Building CXX object gtsam/CMakeFiles/gtsam.dir/geometry/triangulation.cpp.o
+  /usr/include/boost/serialization/list.hpp:53:33: error: ‘library_version_type’ in namespace ‘boost::serialization’ does not name a type; did you mean ‘item_version_type’?
+  ```
+  参考 [github issue](https://github.com/borglab/gtsam/issues/896#issuecomment-946366126), 安装 **develop branch** 的 gtsam: 
+  ```
+  cd ~/cmake_ws && git clone https://github.com/borglab/gtsam.git
+  mkdir build && cd build
+  cmake ..
+  sudo make install -j$(nproc) # 新电脑的 $(nproc) 应该是 16
+  ```
+### 编译 LeGO-LOAM
+- 下载 LeGO-LOAM 源码: `cd ~/dev_ws/src && git clone https://github.com/RobustFieldAutonomyLab/LeGO-LOAM.git`
+- 不着急编译，先看看源码有没有地方需要改动，因为用 ROS2 的 colcon 编译可能跟 ROS1 的 catkin 不太一样。
