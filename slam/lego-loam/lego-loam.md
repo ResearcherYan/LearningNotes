@@ -12,7 +12,7 @@
   - [Summary](#summary)
 - [PC - New](#pc---new)
   - [编译 gtsam 遇到的问题](#编译-gtsam-遇到的问题)
-  - [编译 LeGO-LOAM](#编译-lego-loam)
+  - [修改 LeGO-LOAM 源码：From ROS1 to ROS2](#修改-lego-loam-源码from-ros1-to-ros2)
 
 ## Raspberry Pi 4B
 本来想直接在树莓派 4B 上部署 LeGO-LOAM，尝试了将近一周后，未果。主要原因可能还是 PCL/Boost/FLANN 库的版本问题。以下记录安装过程中的关键错误。
@@ -136,6 +136,8 @@
   cmake ..
   sudo make install -j$(nproc) # 新电脑的 $(nproc) 应该是 16
   ```
-### 编译 LeGO-LOAM
-- 下载 LeGO-LOAM 源码: `cd ~/dev_ws/src && git clone https://github.com/RobustFieldAutonomyLab/LeGO-LOAM.git`
-- 不着急编译，先看看源码有没有地方需要改动，因为用 ROS2 的 colcon 编译可能跟 ROS1 的 catkin 不太一样。
+### 修改 LeGO-LOAM 源码：From ROS1 to ROS2
+- 下载 LeGO-LOAM 源码
+  ```bash
+  cd ~/dev_ws/src && git clone https://github.com/RobustFieldAutonomyLab/LeGO-LOAM.git
+  ```
