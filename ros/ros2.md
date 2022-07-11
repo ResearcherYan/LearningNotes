@@ -2,26 +2,19 @@
 
 
 - [Installation](#installation)
-- [ROS vs. ROS2](#ros-vs-ros2)
+- [ROS1 vs. ROS2](#ros1-vs-ros2)
 - [Beginner Tutorial - Concept](#beginner-tutorial---concept)
   - [Base](#base)
   - [Nodes](#nodes)
   - [Topics](#topics)
   - [Services](#services)
-    - [Services vs. Topics](#services-vs-topics)
   - [Parameters](#parameters)
   - [Actions](#actions)
-    - [Background](#background)
-    - [Usage](#usage)
   - [rqt_console](#rqt_console)
   - [Launch](#launch)
   - [Bag](#bag)
   - [Workspace](#workspace)
-    - [Background](#background-1)
-    - [Usage](#usage-1)
   - [Package](#package)
-    - [Background](#background-2)
-    - [Usage](#usage-2)
 - [Beginner Tutorial - Practice](#beginner-tutorial---practice)
   - [Writing a simple publisher and subscriber (C++)](#writing-a-simple-publisher-and-subscriber-c)
   - [Writing a simple service and client (C++)](#writing-a-simple-service-and-client-c)
@@ -30,36 +23,27 @@
   - [Using parameters in a class (C++)](#using-parameters-in-a-class-c)
   - [Getting started with ros2doctor](#getting-started-with-ros2doctor)
   - [Creating and Using Plugins (C++)](#creating-and-using-plugins-c)
-    - [Background](#background-3)
-    - [Usage](#usage-3)
 - [Other Tutorials](#other-tutorials)
-  - [tf2 Tutorials](#tf2-tutorials)
-    - [Introduction to tf2](#introduction-to-tf2)
-      - [tf2 tools](#tf2-tools)
-    - [Writing a tf2 static broadcaster (C++)](#writing-a-tf2-static-broadcaster-c)
-    - [Writing a tf2 broadcaster (C++)](#writing-a-tf2-broadcaster-c)
-    - [Writing a tf2 listener (C++)](#writing-a-tf2-listener-c)
-    - [Adding a frame (C++)](#adding-a-frame-c)
-    - [Learning about tf2 and time (C++)](#learning-about-tf2-and-time-c)
-    - [Time travel with tf2 (C++)](#time-travel-with-tf2-c)
+  - [tf2](#tf2)
+  - [ament_cmake](#ament_cmake)
 
 
-# Installation
+## Installation
 新电脑只有 Ubuntu 22 能够识别无线网卡，而 Ubuntu 22 只支持 ROS2，因此被迫使用 ROS 2 Humble Hawksbill。
 参考[官方安装链接](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html)，安装桌面版，注意在添加软件源的时候换成中科大的就行：<br>
 ```bash
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] https://mirrors.ustc.edu.cn/ros2/ubuntu/ $(source /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
 ```
 
-# ROS vs. ROS2
-- ROS2 没有 master 节点了。
-- ROS2 没有 filesystem tools 了，没法使用 rospack, roscd, rosls, rosed 等文件管理功能。
-- ROS2 不再使用 catkin 为默认的 build tool，使用的是 colcon。
+## ROS1 vs. ROS2
+- ROS2 没有 master 节点了
+- ROS2 没有 filesystem tools 了，没法使用 rospack, roscd, rosls, rosed 等文件管理功能
+- ROS2 不再使用 catkin 为默认的 build tool，使用的是 colcon
 
-# Beginner Tutorial - Concept
+## Beginner Tutorial - Concept
 [官方教程](https://docs.ros.org/en/humble/Tutorials.html#) Beginner Level: From [Configuring your ROS 2 environment](https://docs.ros.org/en/humble/Tutorials/Configuring-ROS2-Environment.html) to [Creating your first ROS 2 package](https://docs.ros.org/en/humble/Tutorials/Creating-Your-First-ROS2-Package.html)
 
-## Base
+### Base
 - 把启动 ROS2 的 setup file 写到 bashrc 里，以免每次打开新的终端都要 source 一下：`echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc`
 - 为自己 ROS2 的 group 添加 **Domain ID**：`echo "export ROS_DOMAIN_ID=1" >> ~/.bashrc`（这里设置的 Domain ID 是 1）
 - 安装 rqt：`sudo apt install ~nros-humble-rqt*`
@@ -98,7 +82,7 @@ echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-a
   ```
   6. 完成以上修改后，再执行 `rosdep update`
 
-## Nodes
+### Nodes
 - **ros2 run**: Launch an executable from a package.（启动一个节点）
   - `ros2 run <package_name> <executable_name>`
 - **ros2 node list**: Show the names of all *running* nodes.
@@ -109,7 +93,7 @@ echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-a
 - **ros2 node info**: Show a list of subscribers, publishers, services, and actions (the ROS graph connections) that interact with that node.
   - `ros2 node info <node_name>`
 
-## Topics
+### Topics
 - **ros2 topic list**: Show a list of all the topics *currently active* in the system.
   - `ros2 topic list`
   - `ros2 topic list -t`: with topic type appended（topic type 用于说明这个 topic 负责传递的是什么类型的 message）
@@ -127,7 +111,7 @@ echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-a
 - `ros2 topic hz`: View the rate at which data is published.
   - `ros2 topic hz <topic_name>`
 
-## Services
+### Services
 - **ros2 service list**: Show a list of all the services currently active in the system.
   - `ros2 service list`
   - `ros2 service list -t`: with the service type appended
@@ -140,12 +124,12 @@ echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-a
 - **ros2 service call**: Call a service.
   - `ros2 service call <service_name> <service_type> <arguments>`: arguments 是可选项，不一定所有的 service 都有 arguments
 
-### Services vs. Topics
+**Services vs. Topics**<br>
 Service 和 topic 的区别在于
 - Service 是一个 request/responde 模式，client node 需要给 server node 发一个 request，然后由 server node 给出一个 response
 - Topic 是一个 publish/subscribe 模式，publisher 发布一个 topic，然后由 subscriber 订阅这个 topic
 
-## Parameters
+### Parameters
 A parameter is a configuration value of a node.
 - **ros2 param list**: Show the parameters belonging the running nodes.
   - `ros2 param list`
@@ -161,17 +145,18 @@ A parameter is a configuration value of a node.
 - **Load parameter file on node startup**
   - `ros2 run <package_name> <executable_name> --ros-args --params-file <file_name>`
 
-## Actions
-### Background
-Action 是用于长期运行任务的一种 communication type。<br>
-Action 包括三部分: a goal, feedback, and a result。<br>
-Action 用的是 client-server 模型，但跟 service 的差别在于 action 在进行过程中**可以收到反馈**并且是**可以被中断**的，如果是由 client 侧提出要停止一个 goal，称为 cancel a goal，如果是由 server 侧决定要停止一个 goal，称为 abort a goal。<br>
-Action 的具体工作流程为
-- action client 借助 goal service 给 action server 发一个 request，然后 action server 给出相应的 response。
-- action client 借助 result service 再给 action server 发一个 request，在完成 goal 之前，action server 会一直通过 feedback topic 给 action client 发送 feedback，任务完成后会给出一个 response。
+### Actions
+**Background**
+- Action 是用于长期运行任务的一种 communication type。
+- Action 包括三部分: a goal, feedback, and a result。
+- Action 用的是 client-server 模型，但跟 service 的差别在于 action 在进行过程中**可以收到反馈**并且是**可以被中断**的，如果是由 client 侧提出要停止一个 goal，称为 cancel a goal，如果是由 server 侧决定要停止一个 goal，称为 abort a goal。
+- Action 的具体工作流程为
+  - action client 借助 goal service 给 action server 发一个 request，然后 action server 给出相应的 response。
+  - action client 借助 result service 再给 action server 发一个 request，在完成 goal 之前，action server 会一直通过 feedback topic 给 action client 发送 feedback，任务完成后会给出一个 response。
+
 <img src='../img/ros2_1.gif'><br>
 
-### Usage
+**Usage**
 - **ros2 node info**: `ros2 node info <node_name>` 会显示 node 下面有哪些 action server 和 action client
 - **ros2 action list**: Show all the actions in the ROS graph.
   - `ros2 action list`
@@ -184,17 +169,17 @@ Action 的具体工作流程为
   - `ros2 action send_goal <action_name> <action_type> <values>`: 其中 `value` 需要是 YAML 格式
   - `ros2 action send_goal <action_name> <action_type> <values> --feedback`: 终端除了会输出 goal 和 result 之外，还会输出 feedback（直到 goal 完成之前）。
 
-## rqt_console
+### rqt_console
 `rqt_console` is a GUI tool used to introspect log messages.
 - **Start *rqt_console***: `ros2 run rqt_console rqt_console`
 - **Logger levels**: *Fatal, Error, Warn, Info, Debug* 严重等级依次降低，默认的 logger level 是 *Info*，即没有 *Info* 严重的 log 是看不到的。
   - `ros2 run <package_name> <executable_name> --ros-args --log-level WARN`: 修改默认的 logger level 为 Warn
 
-## Launch
+### Launch
 Launch files allow you to start up and configure a number of executables containing ROS 2 nodes simultaneously.
 - **Running a launch file**: `ros2 launch <node_name> <launch_file>`. Launch file 可以用 python 写，也可以使用 XML 和 YAML 格式。如何写一个 launch file 参考 [Launch Tutorials](https://docs.ros.org/en/humble/Tutorials/Launch/Launch-Main.html)。
 
-## Bag
+### Bag
 - **ros2 bag record**: Record the data published to a topic.
   - `ros2 bag record <topic_name>`
   - `ros2 bag record -o <bag_file_name> <topic1> <topic2>`: Record multiple topics and change the name of the rosbag file.(The default name pattern is `rosbag2_year_month_day-hour_minute_second`)
@@ -203,13 +188,13 @@ Launch files allow you to start up and configure a number of executables contain
 - **ros2 bag play**: Replay a bag file.
   - `ros2 bag play <bag_file_name>`
 
-## Workspace
-### Background
+### Workspace
+**Background**<br>
 A workspace is a directory containing ROS 2 packages.
 - **overlay**: A secondary workspace where you can add new packages without interfering with the existing ROS 2 workspace that you’re extending.
 - **underlay**: Contain the dependencies of all the packages in your overlay. Packages in your overlay will override packages in the underlay.
 
-### Usage
+**Usage**
 - **Create a workspace**: `mkdir -p ~/dev_ws/src`
 - **Create a package under the workspace**: `cd ~/dev_ws/src && git clone https://github.com/ros/ros_tutorials.git -b humble-devel`
 - **Resolve dependencies**: `cd ~/dev_ws && rosdep install -i --from-path src --rosdistro humble -y`
@@ -221,13 +206,13 @@ A workspace is a directory containing ROS 2 packages.
   - `--event-handlers console_direct+` shows console output while building (can otherwise be found in the log directory).
 - **Source the overlay**: `turtlesim` 本来就存在于 ROS2 的主环境里，这是一个 underlay 版本，上面的操作又在自己的 workspace 里面 build 了一个 overlay 版本的 `turtlesim`。此时，如果新开一个终端，执行 `source ~/dev_ws/install/local_setup.bash`，相当于只会把 overlay 环境的包（即自己 workspace 里面的包）添加到终端环境中，但如果执行的是 `source ~/dev_ws/install/setup.bash`，就会同时把 overlay 版本的包和 ROS2 主环境的包都添加到终端环境里，不过 `setup.bash` 会先 source ROS2 主环境，然后再 source overlay 环境（即自己的 workspace），这样就能保证如果 ROS2 主环境和 overlay 环境有相同的包，终端默认使用的包就是 overlay 环境的包。
 
-## Package
-### Background
+### Package
+**Background**<br>
 Package creation in ROS 2 uses **ament** as its build system and **colcon** as its build tool.
 - `package.xml` file containing meta information about the package.
 - `CMakeLists.txt` file that describes how to build the code within the package.
 
-### Usage
+**Usage**<br>
 在同一个终端下执行以下命令
 - **Create a package**: 基本的格式为 `ros2 pkg create --build-type ament_cmake <package_name>`
   - `cd ~/dev_ws/src && ros2 pkg create --build-type ament_cmake --node-name my_node my_package`: 加上 `--node-name` 会在 my_package 里创建一个简单的 Hello World type executable.
@@ -238,10 +223,10 @@ Package creation in ROS 2 uses **ament** as its build system and **colcon** as i
   - `maintainer`, `descprition`, `license`: 如果要发布自己的包，这几项需要填写。
   - tags names ending with `_depend`: 用于向 colcon 描述这个 package 的依赖。
 
-# Beginner Tutorial - Practice
+## Beginner Tutorial - Practice
 [官方教程](https://docs.ros.org/en/humble/Tutorials.html#) Beginner Level: From [Writing a simple publisher and subscriber (C++)](https://docs.ros.org/en/humble/Tutorials/Writing-A-Simple-Cpp-Publisher-And-Subscriber.html) to [Creating and Using Plugins (C++)](https://docs.ros.org/en/humble/Tutorials/Pluginlib.html)
 
-## Writing a simple publisher and subscriber (C++)
+### Writing a simple publisher and subscriber (C++)
 在同一个终端下执行以下命令
 1. **Create a package**: `cd ~/dev_ws/src && ros2 pkg create --build-type ament_cmake cpp_pubsub`
 2. **Write the publisher code**
@@ -257,7 +242,7 @@ Package creation in ROS 2 uses **ament** as its build system and **colcon** as i
    - Source the setup file and run the **talker** node: `source install/setup.bash && ros2 run cpp_pubsub talker`
    - Open a new terminal. Source the setup file and run the **listener** node: `source ~/dev_ws/install/setup.bash && ros2 run cpp_pubsub listener`
 
-## Writing a simple service and client (C++)
+### Writing a simple service and client (C++)
 The structure of the request and response, which are generated during the *service* communication, is determined by a `.srv` file.<br><br>
 在同一个终端执行以下命令
 1. **Create a package**: `cd ~/dev_ws/src && ros2 pkg create --build-type ament_cmake cpp_srvcli --dependencies rclcpp example_interfaces`。其中 `--dependencies` 会将依赖添加到 `package.xml` 和 `CMakeLists.txt` 中。依赖 `example_interfaces` 包括了本例中需要用到的 *.srv* 文件。
@@ -271,7 +256,7 @@ The structure of the request and response, which are generated during the *servi
    - Source the setup file and run the **service** node: `source install/setup.bash && ros2 run cpp_srvcli server`
    - Open a new terminal. Source the setup file and run the **client** node: `source ~/dev_ws/install/setup.bash && ros2 run cpp_srvcli client 2 3`
 
-## Creating custom ROS 2 msg and srv files
+### Creating custom ROS 2 msg and srv files
 前两个 tutorial 都是用的已经定义好的接口，但经常需要自己定义数据接口，这就需要自己创建 `.msg` 和 `.srv` 文件。<br><br>
 在同一个终端执行以下命令
 1. **Create a package**
@@ -289,7 +274,7 @@ The structure of the request and response, which are generated during the *servi
    1. Testing `Num.msg` with pub/sub. 参考 [7.1 Testing `Num.msg` with pub/sub](https://docs.ros.org/en/humble/Tutorials/Custom-ROS2-Interfaces.html#testing-num-msg-with-pub-sub)，修改 cpp_pubsub 包，使其 message type 变为 `Num.msg`。
    2. Testing `AddThreeInts.srv` with service/client. 参考 [7.2 Testing `AddThreeInts.srv` with service/client](https://docs.ros.org/en/humble/Tutorials/Custom-ROS2-Interfaces.html#testing-addthreeints-srv-with-service-client)，修改 cpp_srvcli 包，使其 service type 变为 `AddThreeInts.srv`。注意教程里并没有改 cpp_srvcli 包下源代码的文件名，但为了统一起见，还是把源代码文件名改成了 add_three_ints_xxx.cpp，这就要求把 `CMakeLists.txt` 里面的两句 `add_executable` 也给改了。
 
-## Expanding on ROS 2 interfaces
+### Expanding on ROS 2 interfaces
 前一个教程主要讲怎么自定义接口，这个教程主要讲怎么把所有的接口（可能会包括很多的数据类型）都集成在一个包里面。
 1. **Create a package**
    ```bash
@@ -302,7 +287,7 @@ The structure of the request and response, which are generated during the *servi
    - `source install/local_setup.bash && ros2 run more_interfaces publish_address_book`
    - Open a new terminal. `source ~/dev_ws/install/local_setup.bash && ros2 topic echo /address_book`
 
-## Using parameters in a class (C++)
+### Using parameters in a class (C++)
 This tutorial will show you how to create parameters in a C++ class, and how to **set them in a launch file**.
 1. **Create a package**: `cd ~/dev_ws/src && ros2 pkg create --build-type ament_cmake cpp_parameters --dependencies rclcpp`
 2. **Write the C++ node**: 按照 [2 Write the C++ node](https://docs.ros.org/en/humble/Tutorials/Using-Parameters-In-A-Class-CPP.html#write-the-c-node) 写好节点的 C++ 源代码。
@@ -313,18 +298,18 @@ This tutorial will show you how to create parameters in a C++ class, and how to 
    - Change the parameter via the console: `cd ~/dev_ws && source install/setup.bash && ros2 param set /parameter_node my_parameter earth`
    - Change the parameter via a launch file: 按照 [3.2 Change via a launch file](https://docs.ros.org/en/humble/Tutorials/Using-Parameters-In-A-Class-CPP.html#change-via-a-launch-file)，创建一个 launch file 并修改 `CMakeLists.txt`，然后 `source install/setup.bash && ros2 launch cpp_parameters cpp_parameters_launch.py`。
 
-## Getting started with ros2doctor
+### Getting started with ros2doctor
 **ros2doctor** checks all aspects of ROS 2, including platform, version, network, environment, running systems and more, and warns you about possible errors and reasons for issues.
 - Examine your general *ROS 2 setup* as a whole: `ros2 doctor`
 - Get a full report: `ros2 doctor --report`
 
-## Creating and Using Plugins (C++)
+### Creating and Using Plugins (C++)
 This is the last Beginner Level tutorial. This tutorial shows how to create and load a simple plugin using pluginlib.<br>
 
-### Background
+**Background**<br>
 pluginlib is a C++ library for loading and unloading plugins from within a ROS package. Plugins are dynamically loadable classes that are loaded from a runtime library (i.e. shared object, dynamically linked library). With pluginlib, one does not have to explicitly link their application against the library containing the classes – instead pluginlib can open a library containing exported classes at any point without the application having any prior awareness of the library or the header file containing the class definition. Plugins are useful for extending/modifying application behavior without needing the application source code.
 
-### Usage
+**Usage**
 1. **Create two packages**: 在本教程中，会创建两个包：一个用于定义 base class，另一个提供 plugin。
    - Create the base class package: 参考 [1 Create the Base Class Package](https://docs.ros.org/en/humble/Tutorials/Pluginlib.html#create-the-base-class-package)
    - Create the plugin package: 参考 [2 Create the Plugin Package](https://docs.ros.org/en/humble/Tutorials/Pluginlib.html#create-the-plugin-package)，但注意在修改 `CMakeLists.txt` 的时候，教程里说需要添加的代码可能有一部分在原本的 `CMakeLists.txt` 里已经存在了，需要自己对比着看看，不要重复添加。
@@ -332,15 +317,14 @@ pluginlib is a C++ library for loading and unloading plugins from within a ROS p
    - `cd ~/dev_ws && colcon build --packages-select polygon_base polygon_plugins`
    - `source install/setup.bash && ros2 run polygon_base area_node`
 
-# Other Tutorials
-## tf2 Tutorials
+## Other Tutorials
+### tf2
 最近看 LeGO-LOAM 源代码，需要使用到 tf 包，就学习了以下 tf 的用法。ROS1 是同时支持 tf 和 tf2 的，但 ROS2 似乎只支持 tf2 了。不过二者概念上应该差别不大，因为新电脑装的是 ROS2，这里就记录一下 tf2 的学习过程。
 > 参考教程目录: [tf2 tutorials](http://docs.ros.org/en/humble/Tutorials/Tf2/Tf2-Main.html)<br>
 > 备用: [tf1 tutorials](https://wiki.ros.org/tf/Tutorials)
 
-### Introduction to tf2
+**Introduction to tf2**
 > 参考教程: [Introduction to tf2](http://docs.ros.org/en/humble/Tutorials/Tf2/Introduction-To-Tf2.html)
-#### tf2 tools
 - **view_frames**: `view_frames` creates a diagram of the frames being broadcasted by tf2 over ROS.
   - `ros2 run tf2_tools view_frames`
 - **tf2_echo**: `tf2_echo` reports the transform between any two frames broadcasted over ROS.
@@ -348,30 +332,107 @@ pluginlib is a C++ library for loading and unloading plugins from within a ROS p
 - **rviz**: `rviz` is a visualization tool that is useful for examining tf2 frames.
   - `ros2 run rviz2 rviz2 -d $(ros2 pkg prefix --share turtle_tf2_py)/rviz/turtle_rviz.rviz`
 
-### Writing a tf2 static broadcaster (C++)
+**Writing a tf2 static broadcaster (C++)**
 > 参考教程: [Writing a tf2 static broadcaster (C++)](http://docs.ros.org/en/humble/Tutorials/Tf2/Writing-A-Tf2-Static-Broadcaster-Cpp.html)
 - 第一部分讲了如何写一个 static broadcaster node。
 - 第二部分讲了如何用命令行发布 static transforms，以及如何在 launch file 里启动 static_transform_publisher 节点
   - `ros2 run tf2_ros static_transform_publisher --x x --y y --z z --yaw yaw --pitch pitch --roll roll --frame-id frame_id --child-frame-id child_frame_id`: 用 xyz/rpy 的方式表达位姿
   - `ros2 run tf2_ros static_transform_publisher --x x --y y --z z --qx qx --qy qy --qz qz --qw qw --frame-id frame_id --child-frame-id child_frame_id`: 用 xyz/quaterion 的方式表达位姿
 
-### Writing a tf2 broadcaster (C++)
+**Writing a tf2 broadcaster (C++)**
 > 参考教程: [Writing a tf2 broadcaster (C++)](http://docs.ros.org/en/humble/Tutorials/Tf2/Writing-A-Tf2-Broadcaster-Cpp.html)
 - 主要内容：自己写一个 tf2 broadcaster，实现键盘控制乌龟移动，通过 `tf2_echo` 查看从世界坐标系到乌龟坐标系的坐标变换（也就是乌龟的位姿）。
 
-### Writing a tf2 listener (C++)
+**Writing a tf2 listener (C++)**
 > 参考教程: [Writing a tf2 listener (C++)](http://docs.ros.org/en/humble/Tutorials/Tf2/Writing-A-Tf2-Listener-Cpp.html)
 - 主要内容：自己写一个 tf2 listener，实现前面 Introduction to tf2 里面的功能，即键盘控制乌龟 1 移动，乌龟 2 订阅乌龟 1 的位姿信息，并跟随乌龟 1。
 
-### Adding a frame (C++)
+**Adding a frame (C++)**
 > 参考教程: [Adding a frame (C++)](http://docs.ros.org/en/humble/Tutorials/Tf2/Adding-A-Frame-Cpp.html)
 - 第一部分讲了如何添加一个相对 turtle 1 静止的参考系，然后让 turtle 2 跟随这个固定参考系运动。
 - 第二部分讲了如何添加一个相对 turtle 2 运动的参考系，然后让 turtle 2 跟随这个动态参考系运动。
 
-### Learning about tf2 and time (C++)
+**Learning about tf2 and time (C++)**
 > 参考教程: [Learning about tf2 and time (C++)](http://docs.ros.org/en/humble/Tutorials/Tf2/Learning-About-Tf2-And-Time-Cpp.html)
 - 主要内容：讲了如何使用 `lookupTransform()` 获取某个特定时间戳的 transform，以及 `lookupTransform()` 预留的 timeout 机制。
 
-### Time travel with tf2 (C++)
+**Time travel with tf2 (C++)**
 > 参考教程: [Time travel with tf2 (C++)](http://docs.ros.org/en/humble/Tutorials/Tf2/Time-Travel-With-Tf2-Cpp.html)
 - 主要内容：讲了 tf2 的 time travel feature（在机器人示教等应用场景中经常用到），可以求某个时间戳(5 secs ago)的坐标系(turtule2)到另一个时间戳(now)的另一个坐标系(carrot1)的变换。这需要使用到 `lookupTransform()` 的高级 API（需要传入 6 个参数）。
+
+### ament_cmake
+> 参考教程: [ament_cmake user documentation](https://docs.ros.org/en/humble/How-To-Guides/Ament-CMake-Documentation.html)
+
+**Basics**
+- 与编译有关的信息主要写在了两个文件里: `CMakeLists.txt` 和 `package.xml`
+- The `package.xml` must contain all dependencies and a bit of metadata to allow colcon to find the correct build order for your packages, to install the required dependencies in CI as well as provide the information for a release with `bloom`.
+- The `CMakeLists.txt` contains the commands to build and package executables and libraries.
+
+**Basic project outline**
+```cmake
+cmake_minimum_required(VERSION 3.5)
+project(my_project)
+
+ament_package() # 放在最后
+```
+
+**Adding files and headers**
+- 把所有需要用到的头文件都放在 `include` 目录下，把 `.c/cpp` 文件都放在 `src` 目录下
+- 通过以下语句来寻找头文件
+  ```cmake
+  target_include_directories(my_target
+    PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+      $<INSTALL_INTERFACE:include>)
+  ```
+  This adds all files in the folder `${CMAKE_CURRENT_SOURCE_DIR}/include` to the public interface during build time and all files in the include folder (relative to `${CMAKE_INSTALL_DIR}`) when being installed.
+
+**Adding Dependencies**
+- 方法 1：使用 `ament_target_dependencies`（推荐）
+  ```cmake
+  find_package(Eigen3 REQUIRED)
+  ament_target_dependencies(my_target Eigen3)
+  ```
+- 方法 2：使用 `target_link_libraries`
+  ```cmake
+  find_package(Eigen3 REQUIRED)
+  target_link_libraries(my_target Eigen3::Eigen)
+  ```
+- 相比于方法 1，方法 2 可能会在使用 overlay workspaces 时可能无法正确地对依赖项进行排序
+
+**Building a Library**
+```cmake
+ament_export_targets(my_libraryTargets HAS_LIBRARY_TARGET)
+ament_export_dependencies(some_dependency)
+
+install(
+  DIRECTORY include/
+  DESTINATION include
+)
+
+install(
+  TARGETS my_library
+  EXPORT my_libraryTargets
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  RUNTIME DESTINATION bin
+  INCLUDES DESTINATION include
+)
+```
+Here is what’s happening in the snippet above:
+- The `ament_export_targets` macro exports the targets for CMake. This is necessary to allow your library’s clients to use the `target_link_libraries(client my_library::my_library)` syntax. `ament_export_targets` can take an arbitrary list of targets named as EXPORT in an install call and an additional option `HAS_LIBRARY_TARGET`, which adds potential libraries to environment variables.
+- The `ament_export_dependencies` exports dependencies to downstream packages. This is necessary so that the user of the library does not have to call `find_package` for those dependencies, too.
+- The first `install` commands installs the header files which should be available to clients.
+- The last large install command installs the library. Archive and library files will be exported to the lib folder, runtime binaries will be installed to the bin folder and the path to installed headers is `include`.
+
+Details about the snippet:
+- Regarding the `include` directory, the install command only adds information to CMake, it does not actually install the includes folder. This is done by copying the headers via `install(DIRECTORY <dir> DESTINATION <dest>)` as described above.
+- The `EXPORT` notation of the install call requires additional attention: It installs the CMake files for the `my_library` target. It is named exactly like the argument in `ament_export_targets` and could be named like the library. However, this will then prohibit using the `ament_target_dependencies` way of including your library. To allow for full flexibility, it is advised to prepend the export target with something like `<target>Targets`.
+- All install paths are relative to `CMAKE_INSTALL_PREFIX`, which is already set correctly by colcon/ament
+
+There are two additional functions which can be used but are superfluous for target based installs:
+```cmake
+ament_export_include_directories(include)
+ament_export_libraries(my_library)
+```
+- The first macro marks the directory of the exported include directories (this is achieved by `INCLUDES DESTINATION` in the target `install` call). The second macro marks the location of the installed library (this is done by the `HAS_LIBRARY_TARGET` argument in the call to `ament_export_targets`).
