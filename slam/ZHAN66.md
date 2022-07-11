@@ -1,9 +1,10 @@
 > 本文用于记录 ZHAN 66 SLAM 开发环境的安装过程
 
 - [VLP-16](#vlp-16)
-- [尝试从源代码安装 ROS Noetic](#尝试从源代码安装-ros-noetic)
+- [尝试安装 ROS Noetic](#尝试安装-ros-noetic)
   - [下载源代码 + 安装依赖](#下载源代码--安装依赖)
   - [编译](#编译)
+  - [收尾工作](#收尾工作)
 
 首先，2022年的这款 ZHAN 66，用的是高通的一个比较新的无线网卡，Ubuntu 20.04 最新的固件版本也不支持它，因此被迫换到 Ubuntu 22.04，硬件适配上一切都好，但唯一不好的一点就是 Ubuntu 22 只能支持 ROS2，而目前 SLAM 开源社区用的基本上都是 ROS1，这就得自己把源代码 ROS1 的东西迁移到 ROS2。
 
@@ -32,7 +33,7 @@
   ```
   与 ROS1 的 `rosbag record` 不同，ROS2 的上述命令会在 `./out` 目录下生成一个 `metadata.yaml` 和一个 `out_0.db3` 文件，不再是 `.bag` 文件了。
 
-## 尝试从源代码安装 ROS Noetic
+## 尝试安装 ROS Noetic
 > 参考链接: [Installing from source](http://wiki.ros.org/noetic/Installation/Source)
 
 考虑到 SLAM 开源社区基本都是用的 ROS1，并且实验室其他两人都用的是 ROS1，如果用 ROS2 后面工作交接起来也比较麻烦，还是决定尝试装一下 ROS1。
@@ -100,4 +101,22 @@ sudo apt install gcc-5
 ---
 
 只能放弃从源代码编译的思路。在 [ROS answers](https://answers.ros.org/question/399664/will-ros-noetic-support-ubuntu-2204/) 和 [reddit](https://www.reddit.com/r/ROS/comments/umrquk/ros_on_ubuntu_2204/) 都看到有人说可以用 apt 安装 debian 系列的 ROS1（看 ID 好像是一个人回答的），两个回答都提到了可能还需要将部分包从源代码编译（在 [https://github.com/ros-o](https://github.com/ros-o) 和一些官方 github 仓库上获取源代码），这就很麻烦，而且从前面的经验可以看到基于源代码编译很容易崩。<br><br>
-所以最终，选择放弃安装 ROS1，直接上 ROS2（起码是 offically supported）。
+所以最终，选择放弃安装 ROS1，直接上 ROS2（起码是 offically supported）
+
+### 收尾工作
+- 卸载 gcc/g++-5 和 gcc/g++-9
+```
+sudo apt remove gcc-5 gcc-9 g++-5 g++-9
+sudo update-alternatives --remove gcc /usr/bin/gcc-5
+sudo update-alternatives --remove gcc /usr/bin/gcc-9
+sudo update-alternatives --remove g++ /usr/bin/g++-5
+sudo update-alternatives --remove g++ /usr/bin/g++-9
+```
+- 删除 ubuntu 16 的公钥
+```
+sudo apt-key del 40976EAF437D05B5
+sudo apt-key del 3B4FE6ACC0B21F32
+```
+- 删除 ubuntu 16 的软件源：`sudo gedit /etc/apt/sources.list`，删掉 xenial 相关的源。
+- 删除 catkin_ws：`rm -rf ~/catkin_ws`
+- 无法还原的操作：前面通过 rosdep 安装的包不知道有哪些了，因此无法卸载他们，不过应该没什么影响。
