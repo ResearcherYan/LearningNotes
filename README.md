@@ -17,5 +17,6 @@
 4. slam
    - [视觉SLAM十四讲 3rdparty library installation](slam/slambook2-3rdparty.md)
    - [orbslam2-docker](slam/orbslam2/orbslam2-docker.md)
+   - [orbslam2-raspberrypi](slam/orbslam2/orbslam2-raspberrypi.md)
    - [lego-loam](slam/lego-loam/lego-loam.md)
    - [ZHAN66](slam/ZHAN66.md)：记录 ZHAN 66 SLAM 开发环境的安装过程

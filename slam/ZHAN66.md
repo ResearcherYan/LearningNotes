@@ -1,11 +1,18 @@
 > 本文用于记录 ZHAN 66 SLAM 开发环境的安装过程
 
-- [VLP-16](#vlp-16)
-- [尝试安装 ROS Noetic](#尝试安装-ros-noetic)
-  - [下载源代码 + 安装依赖](#下载源代码--安装依赖)
-  - [编译](#编译)
-  - [收尾工作](#收尾工作)
+- [Ubuntu 22.04 LTS](#ubuntu-2204-lts)
+  - [VLP-16](#vlp-16)
+  - [尝试安装 ROS Noetic](#尝试安装-ros-noetic)
+    - [下载源代码 + 安装依赖](#下载源代码--安装依赖)
+    - [编译](#编译)
+    - [收尾工作](#收尾工作)
+- [Ubuntu 20.04 LTS](#ubuntu-2004-lts)
+  - [升级内核](#升级内核)
+  - [安装一些软件包](#安装一些软件包)
+  - [尝试用电脑同时连接小车底盘和相机](#尝试用电脑同时连接小车底盘和相机)
+  - [尝试同时使用相机和激光雷达](#尝试同时使用相机和激光雷达)
 
+# Ubuntu 22.04 LTS
 首先，2022年的这款 ZHAN 66，用的是高通的一个比较新的无线网卡，Ubuntu 20.04 最新的固件版本也不支持它，因此被迫换到 Ubuntu 22.04，硬件适配上一切都好，但唯一不好的一点就是 Ubuntu 22 只能支持 ROS2，而目前 SLAM 开源社区用的基本上都是 ROS1，这就得自己把源代码 ROS1 的东西迁移到 ROS2。
 
 ## VLP-16
@@ -120,3 +127,86 @@ sudo apt-key del 3B4FE6ACC0B21F32
 - 删除 ubuntu 16 的软件源：`sudo gedit /etc/apt/sources.list`，删掉 xenial 相关的源。
 - 删除 catkin_ws：`rm -rf ~/catkin_ws`
 - 无法还原的操作：前面通过 rosdep 安装的包不知道有哪些了，因此无法卸载他们，不过应该没什么影响。
+
+# Ubuntu 20.04 LTS
+经过详细和项目组其他成员反复讨论之后，决定还是统一用 ROS1，而进一步尝试在 ubuntu 22 上安装 ROS1 会有很大风险，没有官方支持。因此尝试再装一个 ubuntu 20，从 win11 下面划 200G，最小化安装。
+
+## 升级内核
+ubuntu 20 默认内核是 5.13，把内核升级到 5.15 之后，可以解决无线网卡驱动问题。<br>
+首先，查看已安装的 5.13 内核有哪些库文件
+```bash
+dpkg --get-selections | grep linux
+```
+发现与 5.13 内核相关的库有
+```bash
+linux-headers-5.13.0-52-generic # 核心文件
+linux-hwe-5.13-headers-5.13.0-52
+linux-hwe-5.13-tools-5.13.0-52
+linux-image-5.13.0-52-generic # 核心文件？
+linux-modules-5.13.0-52-generic # 核心文件
+linux-modules-extra-5.13.0-52-generic # 网卡驱动关键文件
+linux-tools-5.13.0-30-generic
+```
+最后一个 5.13.0-30 是最初的内核版本，upgrade 之后到 5.13.0-52，但 linux-tools 这个包没更新。<br>
+照着安装 5.15 内核（33 是通过 tab 试出来的）
+```bash
+sudo apt install linux-headers-5.15.0-33-generic \
+linux-hwe-5.15-headers-5.15.0-33 \
+linux-hwe-5.15-tools-5.15.0-33 \
+linux-image-5.15.0-33-generic \
+linux-modules-5.15.0-33-generic \
+linux-modules-extra-5.15.0-33-generic \
+linux-tools-5.15.0-33-generic
+```
+
+## 安装一些软件包
+换源：在 Software & Updates 里换成中科大的源<br><br>
+然后安装以下包
+- electron-ssr: 先要 `sudo apt install python`，用 `dpkg` 装完之后再用 `apt --fix-broken install` 来补装需要的依赖
+- 搜狗输入法: 进入 [搜狗输入法 linux](https://shurufa.sogou.com/linux) 下载 deb 包，用 `dpkg` 装完之后再用 `apt --fix-broken install` 来补装需要的依赖，再参考 [搜狗输入法 linux 安装指南](https://shurufa.sogou.com/linux/guide)，将语言选择为 fcitx，重启，输入法 -> configure -> add -> 搜索 sogou -> 把搜狗输入法放到首位，进入搜狗输入法悬浮框里的设置，默认为英文并隐藏悬浮框。（如果有什么问题可以手动安装一下安装指南里的依赖再试试）
+- ROS Noetic（也用中科大源）
+- chrome（firefox 走代理有点小问题，懒得深究，直接用 chrome）
+- brave: brave 站点在外网，用 `curl` 和 `sudo apt update` 的时候都要求超级用户走代理，参考自己之前写的 [proxy](https://github.com/ResearcherYan/LearningNotes/blob/master/general/proxy.md) 笔记设置普通用户和超级用户代理
+- 卸载 firefox, fluid
+- vim
+- Pangolin: 参考 [视觉 SLAM 14 讲第三方库安装](https://github.com/ResearcherYan/LearningNotes/blob/master/slam/slambook2-3rdparty.md#pangolin-ch3)，路径为 `~/cmake_ws/Pangolin`
+- Realsense SDK && realsense-ros: Realsense SDK 翻来覆去最后还是在 5.4 内核下从源代码安装了，路径为 `~/cmake_ws/librealsense`
+- ORB_SLAM2_MAP, dashgo_driver, dashgo_tools, yocs_velocity_smoother（从别人电脑里直接拷到 `~/catkin_ws/src` 下然后编译），并补安装一些缺失库：
+  ```bash
+  python3 -m pip install pyserial
+  sudo usermod -aG dialout yan # 为用户 yan 提供串口读写权限，重启生效
+  sudo apt install ros-noetic-serial ros-noetic-ecl-threads ros-noetic-teleop-twist-keyboard
+  ```
+- 针对上面这些包，修改一些源文件
+  - ORB_SLAM2_MAP: `ORB_SLAM2_MAP/Examples/ROS/ORB_SLAM2_MAP/slam.launch`，路径改成自己电脑下的
+  - dashgo_driver
+    - `dashgo_driver/config/my_dashgo_params.yaml`: 第一句串口号改为 `/dev/ttyUSB0`
+    - `dashgo_driver/nodes/dashgo_driver.py`: 第一句 python 解释器改为 `#!/usr/bin/python3`，确保用的是 python3
+  - dashgo_tools
+    - `dashgo_tools/scripts/check_action.py` & `dashgo_tools/scripts/teleop_twist_keyboard.py`: 第一句 python 解释器改为 `#!/usr/bin/python3`，确保用的是 python3
+- 编译安装上述包
+  ```
+  catkin_make -DCATKIN_ENABLE_TESTING=False -DCMAKE_BUILD_TYPE=Release
+  catkin_make install
+  ```
+- VLP-16 驱动: 参考 [VLP-16](https://github.com/ResearcherYan/LearningNotes/blob/master/slam/lego-loam/lego-loam.md#vlp-16)（新电脑按 super 键找不到 Networks Connections，只能从终端启动 `nm-connection-editor`）
+- vscode: 登录 github 账户，同步所有设置
+- gnome-tweak-tool: `sudo apt install gnome-tweak-tool`。然后按 super 搜索 tweak，使显示电源百分比，隐藏桌面的主文件夹和回收站图标。
+
+## 尝试用电脑同时连接小车底盘和相机
+- 同时启动 ORB_SLAM2_MAP 和底盘控制程序
+  ```
+  roslaunch ORB_SLAM2_MAP slam.launch
+  roslaunch dashgo_driver driver.launch
+  rosrun dashgo_tools teleop_twist_keyboard.py
+  ```
+  控制小车走一会之后控制失灵，无法继续控制
+- 串口调试
+  - `sudo apt install cutecom`
+  - 同时连接小车底盘和相机，在 cutecom 里面给小车底盘收发数据：`m -2 2`, `m 2 -2`（左转右转）, `e`（返回编码器数据）
+  - 有两种情况
+    - 正常发送接收几条数据之后，再发送数据，没有数据反馈，点击 close 会卡死，如果此时 ctrl + c 退出 cutecom，`ls /dev | grep ttyUSB` 找不到串口，重新插拔也没用，同时电脑蓝牙也会没了，并且关机会卡住。
+    - 给底盘发送一条数据后，底盘串口从 `/dev/ttyUSB0` 跳到 `/dev/ttyUSB1`，然后就需要手动打开 ttyUSB1 串口，再发送一条，又跳到 ttyUSB0，循环往复。
+- 原因总结：自己的旧电脑和另一位同学的电脑（都是 intel 的 cpu）都没问题，而实验室的两台 AMD 的电脑都出现这个问题。在网上查了之后，发现 Intel Realsense 相机就是对 AMD 支持比较差，所以才会出现串口紊乱的情况。
+
+## 尝试同时使用相机和激光雷达
