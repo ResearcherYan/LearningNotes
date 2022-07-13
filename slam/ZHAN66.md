@@ -160,19 +160,24 @@ linux-tools-5.15.0-33-generic
 ```
 
 ## 安装软件包
-换源：在 Software & Updates 里换成中科大的源<br><br>
-然后安装以下包
-- electron-ssr: 先要 `sudo apt install python`，用 `dpkg` 装完之后再用 `apt --fix-broken install` 来补装需要的依赖
-- 搜狗输入法: 进入 [搜狗输入法 linux](https://shurufa.sogou.com/linux) 下载 deb 包，用 `dpkg` 装完之后再用 `apt --fix-broken install` 来补装需要的依赖，再参考 [搜狗输入法 linux 安装指南](https://shurufa.sogou.com/linux/guide)，将语言选择为 fcitx，重启，输入法 -> configure -> add -> 搜索 sogou -> 把搜狗输入法放到首位，进入搜狗输入法悬浮框里的设置，默认为英文并隐藏悬浮框。（如果有什么问题可以手动安装一下安装指南里的依赖再试试）
+**换源**：在 Software & Updates 里换成中科大的源<br><br>
+**安装常用软件**
+- electron-ssr: 先要 `sudo apt install python`，用 `dpkg` 装完之后再用 `sudo apt -f install` 来补装需要的依赖
+- 搜狗输入法: 进入 [搜狗输入法 linux](https://shurufa.sogou.com/linux) 下载 deb 包，用 `dpkg` 装完之后再用 `sudo apt -f install` 来补装需要的依赖，再参考 [搜狗输入法 linux 安装指南](https://shurufa.sogou.com/linux/guide)，将语言选择为 fcitx，重启，输入法 -> configure -> add -> 搜索 sogou -> 把搜狗输入法放到首位，进入搜狗输入法悬浮框里的设置，默认为英文并隐藏悬浮框。（如果有什么问题可以手动安装一下安装指南里的依赖再试试）
 - ROS Noetic（也用中科大源）
 - chrome（firefox 走代理有点小问题，懒得深究，直接用 chrome）
-- brave: brave 站点在外网，用 `curl` 和 `sudo apt update` 的时候都要求超级用户走代理，参考自己之前写的 [proxy](https://github.com/ResearcherYan/LearningNotes/blob/master/general/proxy.md) 笔记设置普通用户和超级用户代理（超级用户代理在安装完 brave 之后取消掉，不然 `sudo apt install` 用中科大的源都还需要走代理）
+- brave
+  - 由于 brave 站点在外网，用 `curl` 和 `sudo apt update` 的时候都要求超级用户走代理，参考自己之前写的 [proxy](https://github.com/ResearcherYan/LearningNotes/blob/master/general/proxy.md) 笔记设置普通用户和超级用户代理
+  - 安装完后，取消掉超级用户代理，不然 `sudo apt install` 用中科大的源都还要走代理
+  - 安装完后，删掉 brave 相关的源: `sudo rm /etc/apt/sources.list.d/brave*`，否则每次 `sudo apt update` 的时候都会卡在 brave 那里
 - 卸载 firefox, fluid
 - vim
 - vscode: 登录 github 账户，同步所有设置
 - gnome-tweak-tool: `sudo apt install gnome-tweak-tool`。然后按 super 搜索 tweak，使显示电源百分比，隐藏桌面的主文件夹和回收站图标。
+- deepin-wine: 先安装[新 deepin-wine](https://github.com/zq1997/deepin-wine)，然后安装[微信](https://github.com/ResearcherYan/LearningNotes/blob/master/general/linux.md#%E5%AE%89%E8%A3%85%E5%BE%AE%E4%BF%A1)，然后去 5.4 内核下安装[老 deepin-wine](https://github.com/wszqkzqk/deepin-wine-ubuntu)，并安装[旧版 TIM](https://gitee.com/wszqkzqk/deepin-wine-containers-for-ubuntu/raw/master/deepin.com.qq.office_2.0.0deepin4_i386.deb)（在 5.15 内核下安装 TIM 会无法打开），切回到 5.15 内核后可正常使用 TIM（甚至可以输密码自动登录）
+- [toplcons plus 插件](https://extensions.gnome.org/extension/1031/topicons/)
 
-ORB-SLAM2 相关的包
+**安装 ORB-SLAM2 相关的包**
 - Pangolin: 参考 [视觉 SLAM 14 讲第三方库安装](https://github.com/ResearcherYan/LearningNotes/blob/master/slam/slambook2-3rdparty.md#pangolin-ch3)，路径为 `~/cmake_ws/Pangolin`
 - Realsense SDK && realsense-ros: Realsense SDK 翻来覆去最后还是在 5.4 内核下从源代码安装了，路径为 `~/cmake_ws/librealsense`
 - ORB_SLAM2_MAP, dashgo_driver, dashgo_tools, yocs_velocity_smoother（从别人电脑里直接拷到 `~/catkin_ws/src` 下然后编译），并补安装一些缺失库：
@@ -194,7 +199,7 @@ ORB-SLAM2 相关的包
   catkin_make install
   ```
 
-LeGO-LOAM 相关的包
+**安装 LeGO-LOAM 相关的包**
 - VLP-16 驱动: 参考 [VLP-16](https://github.com/ResearcherYan/LearningNotes/blob/master/slam/lego-loam/lego-loam.md#vlp-16)（新电脑按 super 键找不到 Networks Connections，只能从终端启动 `nm-connection-editor`）
 - gtsam: 参考 [LeGO-LOAM Dependency](https://github.com/RobustFieldAutonomyLab/LeGO-LOAM#dependency)，路径为 `~/cmake_ws/gtsam-4.0.0-alpha2`（这个库 make 有点慢，用所有线程一起 make: `sudo make -j$(nproc) install`）
 - LeGO-LOAM: 参考 [LeGO-LOAM 安装](https://github.com/ResearcherYan/LearningNotes/blob/master/slam/lego-loam/lego-loam.md#lego-loam)，修改 LeGO-LOAM 源码之后再编译
@@ -210,7 +215,7 @@ LeGO-LOAM 相关的包
   控制小车走一会之后控制失灵，无法继续控制
 - 串口调试
   - `sudo apt install cutecom`
-  - 同时连接小车底盘和相机，在 cutecom 里面给小车底盘收发数据：`m -2 2`, `m 2 -2`（左转右转）, `e`（返回编码器数据）
+  - 同时连接小车底盘和相机，在 cutecom 里面给小车底盘收发数据：`m -3 3`, `m 3 -3`（左转右转）, `e`（返回编码器数据）
   - 有两种情况
     - 正常发送接收几条数据之后，再发送数据，没有数据反馈，点击 close 会卡死，如果此时 ctrl + c 退出 cutecom，`ls /dev | grep ttyUSB` 找不到串口，重新插拔也没用，同时电脑蓝牙也会没了，并且关机会卡住。
     - 给底盘发送一条数据后，底盘串口从 `/dev/ttyUSB0` 跳到 `/dev/ttyUSB1`，然后就需要手动打开 ttyUSB1 串口，再发送一条，又跳到 ttyUSB0，循环往复。
