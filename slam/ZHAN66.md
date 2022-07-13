@@ -176,6 +176,7 @@ linux-tools-5.15.0-33-generic
 - gnome-tweak-tool: `sudo apt install gnome-tweak-tool`。然后按 super 搜索 tweak，使显示电源百分比，隐藏桌面的主文件夹和回收站图标。
 - deepin-wine: 先安装[新 deepin-wine](https://github.com/zq1997/deepin-wine)，然后安装[微信](https://github.com/ResearcherYan/LearningNotes/blob/master/general/linux.md#%E5%AE%89%E8%A3%85%E5%BE%AE%E4%BF%A1)，然后去 5.4 内核下安装[老 deepin-wine](https://github.com/wszqkzqk/deepin-wine-ubuntu)，并安装[旧版 TIM](https://gitee.com/wszqkzqk/deepin-wine-containers-for-ubuntu/raw/master/deepin.com.qq.office_2.0.0deepin4_i386.deb)（在 5.15 内核下安装 TIM 会无法打开），切回到 5.15 内核后可正常使用 TIM（甚至可以输密码自动登录）
 - [toplcons plus 插件](https://extensions.gnome.org/extension/1031/topicons/)
+- wps: 参考[安装 wps](https://github.com/ResearcherYan/LearningNotes/blob/master/general/linux.md#%E5%AE%89%E8%A3%85-wps-%E6%9C%80%E6%96%B0%E7%89%88)，安装好之后会提示缺失字体，`sudo apt install symbol-fonts_1.2_all.deb` 安装缺失的字体（这个包在自己的 U 盘里有，[备份网盘链接](https://http://pan.baidu.com/s/1IzxdT_7iEjTq_2uDRofLMQ)，密码: 23d3）
 
 **安装 ORB-SLAM2 相关的包**
 - Pangolin: 参考 [视觉 SLAM 14 讲第三方库安装](https://github.com/ResearcherYan/LearningNotes/blob/master/slam/slambook2-3rdparty.md#pangolin-ch3)，路径为 `~/cmake_ws/Pangolin`
