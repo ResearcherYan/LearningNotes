@@ -11,6 +11,7 @@
   - [安装软件包](#安装软件包)
   - [尝试用电脑同时连接小车底盘和相机](#尝试用电脑同时连接小车底盘和相机)
   - [尝试同时使用相机和激光雷达](#尝试同时使用相机和激光雷达)
+  - [卸载 Ubuntu 22.04](#卸载-ubuntu-2204)
 
 # Ubuntu 22.04 LTS
 首先，2022年的这款 ZHAN 66，用的是高通的一个比较新的无线网卡，Ubuntu 20.04 最新的固件版本也不支持它，因此被迫换到 Ubuntu 22.04，硬件适配上一切都好，但唯一不好的一点就是 Ubuntu 22 只能支持 ROS2，而目前 SLAM 开源社区用的基本上都是 ROS1，这就得自己把源代码 ROS1 的东西迁移到 ROS2。
@@ -228,3 +229,20 @@ linux-tools-5.15.0-33-generic
 将“启动相机”、“运行 ORB_SLAM2_MAP”、“启动激光雷达”、“录制激光雷达点云”一起写到 `ORB_SLAM2_MAP` 的 `slam.launch` 文件里，免得开多个终端。
 - 相机录制的图片路径: `/home/yan/v_slam/1/`（多次录制需要手动更改此路径）
 - 激光雷达录制的点云路径: `/home/yan/lidar_slam/velodyne.bag`（多次录制需要手动更改 bag 的名称）
+
+## 卸载 Ubuntu 22.04
+事实证明，ZHAN 66 在多内核的加持下能够丝滑使用 Ubuntu 20.04（5.15 用于适配硬件驱动，5.4 用于适配软件兼容性，5.13 为安装时的初始内核），于是决定卸掉 Ubuntu 22.04，把多余的空间腾给主力系统。<br><br>
+**操作步骤**
+- 准备好 Ubuntu 启动盘
+- Try Ubuntu
+- 打开 Gparted
+- 删除掉 Ubuntu 22 的三个分区：swap, efi, 主分区。由于 Ubuntu 20 的空间是从 win 11 划过去的，所以 Ubuntu 22 的空间正好是在 Ubuntu 20 主分区扇区的后面，就可以直接合并。
+- 重启进 bios：把 U 盘启动放在 Ubuntu 后面
+- 进入 Ubuntu 20，这次开机很慢，卡在加载页面，按 esc 看到后台进程显示
+  ```
+  A start job is running for /dev/disk/by-uuid/...
+  ```
+  查阅资料之后，发现是因为 Ubuntu 20 启动时会加载 Ubuntu 22 的 swap 分区（因为 Ubuntu 22 的 swap 分区就在 Ubuntu 20 的主分区后面，所以可能 Ubuntu 20 认为给自己分了两个 swap 分区）<br>
+  先用 `sudo blkid` 查看当前系统 swap 分区对应的 uuid，然后再 `sudo gedit /etc/fstab`，把该文件里另一个 swap 分区的 uuid 删掉
+- 更新 grub: `sudo update-grub2`
+- 重启，发现 Ubuntu 22 的启动项消失，开机速度正常，Ubuntu 20 成功扩容
