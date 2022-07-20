@@ -3,6 +3,8 @@
 > - 基础知识的学习记录
 > - 软件或者库的安装、使用以及相关的trouble shooting
 
+0. Methodology
+   - [How to do Research At the MIT AI lab](methodology/how-to-do-research-at-the-mit-ai-lab.md)
 1. General
    - [git](general/git.md)
    - [linux](general/linux.md)
